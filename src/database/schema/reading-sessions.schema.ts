@@ -8,5 +8,5 @@ export const readingSessions = pgTable('reading_sessions', {
     .references(() => books.id, { onDelete: 'cascade' }),
   pagesRead: integer('pages_read').notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
-  sessionDate: date('session_date').notNull(),
+  readAt: date('read_at').notNull(),
 })
