@@ -1,3 +1,4 @@
-import { drizzle } from 'drizzle-orm/neon-http'
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { relations } from './relations'
 
-export type Database = ReturnType<typeof drizzle>
+export type Database = NeonHttpDatabase<typeof relations>
