@@ -1,0 +1,1 @@
+ALTER TABLE "reading_sessions" ALTER COLUMN "read_at" SET DEFAULT now();
