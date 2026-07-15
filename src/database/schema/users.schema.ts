@@ -20,7 +20,7 @@ export const users = pgTable(
     name: text('name').notNull(),
     avatarUrl: text('avatar_url'),
     readingSpeed: integer('reading_speed'),
-    createdAt: timestamp('created_at').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (table) => [unique().on(table.provider, table.providerId)],
 )
