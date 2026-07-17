@@ -1,4 +1,3 @@
-// auth.controller.ts
 import {
   Controller,
   Get,
@@ -10,9 +9,9 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { AuthService } from './auth.service'
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter'
+import { Public } from './decorators/public.decorator'
 import type { OAuthProfile } from './types'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
@@ -22,10 +21,12 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('google')
+  @Public()
   @UseGuards(GoogleAuthGuard)
   googleLogin() {}
 
   @Get('google/callback')
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
@@ -50,13 +51,13 @@ export class AuthController {
   }
 
   @Get('logout')
+  @Public()
   logout(@Res() res: Response) {
     res.clearCookie('access_token')
     res.redirect(process.env.FRONTEND_URL ?? 'http://localhost:5173')
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   me(@Req() req: Request) {
     return req.user
   }
