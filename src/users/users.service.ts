@@ -13,9 +13,9 @@ export class UsersService {
     })
   }
 
-  async findByProviderId(providerId: string) {
+  async findByProvider(provider: 'google' | 'github', providerId: string) {
     return this.db.query.users.findFirst({
-      where: { providerId },
+      where: { provider, providerId },
     })
   }
 
@@ -23,11 +23,11 @@ export class UsersService {
     const [user] = await this.db
       .insert(users)
       .values(data)
-      .onConflictDoNothing({ target: users.providerId })
+      .onConflictDoNothing({ target: [users.provider, users.providerId] })
       .returning()
 
     if (user) return user
 
-    return this.findByProviderId(data.providerId)
+    return this.findByProvider(data.provider, data.providerId)
   }
 }
