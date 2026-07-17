@@ -12,7 +12,9 @@ import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { AuthService } from './auth.service'
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter'
 import { Public } from './decorators/public.decorator'
-import type { OAuthProfile } from './types'
+import type { OAuthProfile } from './auth.types'
+import { toPublicUser } from '@/users/users.mapper'
+import type { User } from '@/users/users.types'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
@@ -30,7 +32,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const user = await this.authService.validateOAuthLogin(
+    const user = await this.authService.findOrCreateFromOAuth(
       req.user as OAuthProfile,
     )
 
@@ -59,6 +61,6 @@ export class AuthController {
 
   @Get('me')
   me(@Req() req: Request) {
-    return req.user
+    return toPublicUser(req.user as User)
   }
 }

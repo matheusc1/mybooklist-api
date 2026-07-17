@@ -6,7 +6,7 @@ import {
   type Profile,
   type VerifyCallback,
 } from 'passport-google-oauth20'
-import type { OAuthProfile } from '../types'
+import type { OAuthProfile } from '../auth.types'
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UsersService } from '@/users/users.service'
-import type { OAuthProfile } from './types'
+import type { OAuthProfile } from './auth.types'
 
 @Injectable()
 export class AuthService {
@@ -10,16 +10,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateOAuthLogin(profile: OAuthProfile) {
-    const existingUser = await this.usersService.findByProvider(
-      profile.provider,
-      profile.providerId,
-    )
-
-    if (existingUser) {
-      return existingUser
-    }
-
+  async findOrCreateFromOAuth(profile: OAuthProfile) {
     return this.usersService.create(profile)
   }
 
