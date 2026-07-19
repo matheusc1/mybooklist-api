@@ -30,7 +30,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     if (!email) {
       return done(
-        new UnauthorizedException('Conta Google sem email público'),
+        new UnauthorizedException('Google account has no public email.'),
         false,
       )
     }

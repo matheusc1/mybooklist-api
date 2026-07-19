@@ -37,7 +37,7 @@ export class AuthController {
     )
 
     if (!user) {
-      throw new InternalServerErrorException('Falha ao autenticar usuário')
+      throw new InternalServerErrorException('Failed to authenticate user.')
     }
 
     const token = this.authService.generateToken(user)
