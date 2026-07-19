@@ -15,6 +15,7 @@ import { Public } from './decorators/public.decorator'
 import type { OAuthProfile } from './auth.types'
 import { toPublicUser } from '@/users/users.mapper'
 import type { User } from '@/users/users.types'
+import { GithubAuthGuard } from './guards/github-auth.guard'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
@@ -32,6 +33,35 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
+    return this.handleOAuthCallback(req, res)
+  }
+
+  @Get('github')
+  @Public()
+  @UseGuards(GithubAuthGuard)
+  githubLogin() {}
+
+  @Get('github/callback')
+  @Public()
+  @UseGuards(GithubAuthGuard)
+  @UseFilters(OAuthExceptionFilter)
+  async githubCallback(@Req() req: Request, @Res() res: Response) {
+    return this.handleOAuthCallback(req, res)
+  }
+
+  @Get('logout')
+  @Public()
+  logout(@Res() res: Response) {
+    res.clearCookie('access_token')
+    res.redirect(process.env.FRONTEND_URL ?? 'http://localhost:5173')
+  }
+
+  @Get('me')
+  me(@Req() req: Request) {
+    return toPublicUser(req.user as User)
+  }
+
+  private async handleOAuthCallback(req: Request, res: Response) {
     const user = await this.authService.findOrCreateFromOAuth(
       req.user as OAuthProfile,
     )
@@ -50,17 +80,5 @@ export class AuthController {
     })
 
     res.redirect(`${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/home`)
-  }
-
-  @Get('logout')
-  @Public()
-  logout(@Res() res: Response) {
-    res.clearCookie('access_token')
-    res.redirect(process.env.FRONTEND_URL ?? 'http://localhost:5173')
-  }
-
-  @Get('me')
-  me(@Req() req: Request) {
-    return toPublicUser(req.user as User)
   }
 }
