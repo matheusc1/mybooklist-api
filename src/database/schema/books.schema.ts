@@ -13,7 +13,7 @@ export const statusEnum = pgEnum('status', [
   'reading',
   'planned',
   'paused',
-  'finished',
+  'completed',
   'dropped',
 ])
 
@@ -32,5 +32,8 @@ export const books = pgTable('books', {
   startedAt: date('started_at'),
   finishedAt: date('finished_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
