@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
-import type { Database } from '@/database/types'
+import type { Database } from '@/database/database.types'
 import { users } from '@/database/schema/users.schema'
-import type { CreateUser, User } from './users.types'
+import type { NewUser, User } from './users.types'
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ export class UsersService {
     })
   }
 
-  async create(data: CreateUser): Promise<User> {
+  async create(data: NewUser): Promise<User> {
     const [user] = await this.db
       .insert(users)
       .values(data)

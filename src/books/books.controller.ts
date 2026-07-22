@@ -10,37 +10,37 @@ export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Get()
-  async findBooks(@CurrentUser() user: User) {
+  async findAll(@CurrentUser() user: User) {
     return this.booksService.findAll(user.id)
   }
 
   @Get(':id')
-  async findBook(@Param('id') id: string, @CurrentUser() user: User) {
+  async findOne(@Param('id') id: string, @CurrentUser() user: User) {
     return this.booksService.findOne(id, user.id)
   }
 
   @Post()
-  async createBook(
+  async create(
     @Body() createBookDto: CreateBookDto,
     @CurrentUser() user: User,
   ) {
-    return this.booksService.createBook({
+    return this.booksService.create({
       ...createBookDto,
       userId: user.id,
     })
   }
 
   @Put(':id')
-  async updateBook(
+  async update(
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,
     @CurrentUser() user: User,
   ) {
-    return this.booksService.updateBook(id, user.id, updateBookDto)
+    return this.booksService.update(id, user.id, updateBookDto)
   }
 
   @Delete(':id')
-  async deleteBook(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.booksService.deleteBook(id, user.id)
+  async delete(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.booksService.delete(id, user.id)
   }
 }

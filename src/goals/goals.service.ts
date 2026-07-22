@@ -1,6 +1,6 @@
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import { goals } from '@/database/schema/goals.schema'
-import type { Database } from '@/database/types'
+import type { Database } from '@/database/database.types'
 import { Injectable, Inject } from '@nestjs/common'
 
 @Injectable()
@@ -11,13 +11,13 @@ export class GoalsService {
     return new Date().getFullYear()
   }
 
-  async findGoal(userId: string) {
+  async find(userId: string) {
     return this.db.query.goals.findFirst({
       where: { year: this.year, userId },
     })
   }
 
-  async upsertGoal(userId: string, target: number) {
+  async upsert(userId: string, target: number) {
     const [goal] = await this.db
       .insert(goals)
       .values({ userId, year: this.year, target })

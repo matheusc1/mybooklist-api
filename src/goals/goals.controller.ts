@@ -9,12 +9,12 @@ export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
   @Get()
-  async findGoal(@CurrentUser() user: User) {
-    return this.goalsService.findGoal(user.id)
+  async find(@CurrentUser() user: User) {
+    return this.goalsService.find(user.id)
   }
 
   @Post()
-  async upsertGoal(@Body() dto: UpsertGoalDto, @CurrentUser() user: User) {
-    return this.goalsService.upsertGoal(user.id, dto.target)
+  async upsert(@Body() dto: UpsertGoalDto, @CurrentUser() user: User) {
+    return this.goalsService.upsert(user.id, dto.target)
   }
 }

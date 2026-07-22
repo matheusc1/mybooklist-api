@@ -1,9 +1,9 @@
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import { books } from '@/database/schema/books.schema'
-import type { Database } from '@/database/types'
+import type { Database } from '@/database/database.types'
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
-import type { Book, CreateBook } from './books.types'
+import type { Book, NewBook } from './books.types'
 
 @Injectable()
 export class BooksService {
@@ -27,12 +27,12 @@ export class BooksService {
     return book
   }
 
-  async createBook(book: CreateBook) {
+  async create(book: NewBook) {
     const [created] = await this.db.insert(books).values(book).returning()
     return created
   }
 
-  async updateBook(id: string, userId: string, book: Partial<Book>) {
+  async update(id: string, userId: string, book: Partial<Book>) {
     await this.findOne(id, userId)
 
     const [updated] = await this.db
@@ -44,7 +44,7 @@ export class BooksService {
     return updated
   }
 
-  async deleteBook(id: string, userId: string) {
+  async delete(id: string, userId: string) {
     await this.findOne(id, userId)
 
     await this.db.delete(books).where(eq(books.id, id))

@@ -10,7 +10,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async findOrCreateFromOAuth(profile: OAuthProfile) {
+  async authenticateOAuth(profile: OAuthProfile) {
     return this.usersService.create(profile)
   }
 

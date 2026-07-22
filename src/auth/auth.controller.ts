@@ -62,7 +62,7 @@ export class AuthController {
   }
 
   private async handleOAuthCallback(req: Request, res: Response) {
-    const user = await this.authService.findOrCreateFromOAuth(
+    const user = await this.authService.authenticateOAuth(
       req.user as OAuthProfile,
     )
 
