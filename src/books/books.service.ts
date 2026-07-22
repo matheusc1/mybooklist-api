@@ -50,23 +50,13 @@ export class BooksService {
     await this.db.delete(books).where(eq(books.id, id))
   }
 
-  async updateStatusIfCompleted(id: string, pageReached: number) {
-    const book = await this.db.query.books.findFirst({
-      where: { id },
-    })
+  async markAsCompleted(id: string) {
+    const [book] = await this.db
+      .update(books)
+      .set({ status: 'completed' })
+      .where(eq(books.id, id))
+      .returning()
 
-    if (!book) {
-      throw new NotFoundException(`Book with id ${id} not found`)
-    }
-
-    if (pageReached === book.totalPages) {
-      const [updated] = await this.db
-        .update(books)
-        .set({ status: 'completed' })
-        .where(eq(books.id, id))
-        .returning()
-
-      return updated
-    }
+    return book
   }
 }
