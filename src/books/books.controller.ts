@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { BooksService } from './books.service'
-import type { CreateBookDto } from './dto/create-book.dto'
-import type { UpdateBookDto } from './dto/update-book.dto'
+import { CreateBookDto } from './dto/create-book.dto'
+import { UpdateBookDto } from './dto/update-book.dto'
 import { CurrentUser } from '@/auth/decorators/current-user.decorator'
 import type { User } from '@/users/users.types'
 

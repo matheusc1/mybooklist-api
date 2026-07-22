@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common'
 import { GoalsService } from './goals.service'
 import { CurrentUser } from '@/auth/decorators/current-user.decorator'
 import type { User } from '@/users/users.types'
-import type { UpsertGoalDto } from './dto/upsert-goal.dto'
+import { UpsertGoalDto } from './dto/upsert-goal.dto'
 
 @Controller('goals')
 export class GoalsController {
