@@ -1,0 +1,1 @@
+ALTER TABLE "books" RENAME COLUMN "finished_at" TO "completed_at";

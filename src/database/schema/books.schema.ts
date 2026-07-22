@@ -30,7 +30,7 @@ export const books = pgTable('books', {
   status: statusEnum().notNull(),
   rating: integer('rating'),
   startedAt: date('started_at'),
-  finishedAt: date('finished_at'),
+  completedAt: date('completed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .notNull()
