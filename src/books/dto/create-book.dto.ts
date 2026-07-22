@@ -26,6 +26,11 @@ export class CreateBookDto {
   @IsPositive()
   totalPages: number
 
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  currentPage: number
+
   @IsEnum(statusEnum.enumValues)
   status: (typeof statusEnum.enumValues)[number]
 
@@ -41,5 +46,5 @@ export class CreateBookDto {
 
   @IsOptional()
   @IsDateString()
-  finishedAt?: string
+  completedAt?: string
 }
