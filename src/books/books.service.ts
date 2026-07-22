@@ -2,7 +2,7 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import { books } from '@/database/schema/books.schema'
 import type { Database } from '@/database/database.types'
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
-import { eq } from 'drizzle-orm'
+import { and, eq, gte, lt } from 'drizzle-orm'
 import type { Book, NewBook } from './books.types'
 
 @Injectable()
@@ -58,5 +58,24 @@ export class BooksService {
       .returning()
 
     return book
+  }
+
+  async countCompleted(userId: string, year: number) {
+    const startOfYear = new Date(Date.UTC(year, 0, 1))
+      .toISOString()
+      .split('T')[0]
+    const endOfYear = new Date(Date.UTC(year + 1, 0, 1))
+      .toISOString()
+      .split('T')[0]
+
+    return this.db.$count(
+      books,
+      and(
+        eq(books.userId, userId),
+        eq(books.status, 'completed'),
+        gte(books.completedAt, startOfYear),
+        lt(books.completedAt, endOfYear),
+      ),
+    )
   }
 }
