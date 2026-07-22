@@ -10,7 +10,7 @@ export class GoalsController {
 
   @Get()
   async find(@CurrentUser() user: User) {
-    return this.goalsService.find(user.id)
+    return this.goalsService.findWithProgress(user.id)
   }
 
   @Post()
