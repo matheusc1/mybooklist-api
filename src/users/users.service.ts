@@ -1,8 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { users } from '@/database/schema/users.schema'
 import type { NewUser, User } from './users.types'
+import { eq } from 'drizzle-orm'
 
 @Injectable()
 export class UsersService {
@@ -42,5 +43,19 @@ export class UsersService {
     }
 
     return existingUser
+  }
+
+  async update(id: string, data: Partial<NewUser>): Promise<User> {
+    const [updated] = await this.db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning()
+
+    if (!updated) {
+      throw new NotFoundException(`User with id ${id} not found`)
+    }
+
+    return updated
   }
 }
