@@ -3,7 +3,7 @@ import { books } from '@/database/schema/books.schema'
 import type { Database } from '@/database/database.types'
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { and, eq, gte, lt } from 'drizzle-orm'
-import type { Book, NewBook } from './books.types'
+import type { NewBook } from './books.types'
 
 @Injectable()
 export class BooksService {
@@ -32,7 +32,7 @@ export class BooksService {
     return created
   }
 
-  async update(id: string, userId: string, book: Partial<Book>) {
+  async update(id: string, userId: string, book: Partial<NewBook>) {
     await this.findOne(id, userId)
 
     const [updated] = await this.db
