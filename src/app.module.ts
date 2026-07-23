@@ -7,6 +7,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { BooksModule } from './books/books.module'
 import { GoalsModule } from './goals/goals.module'
+import { ReadingSessionsModule } from './reading-sessions/reading-sessions.module'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { GoalsModule } from './goals/goals.module'
     AuthModule,
     BooksModule,
     GoalsModule,
+    ReadingSessionsModule,
   ],
   providers: [
     {
