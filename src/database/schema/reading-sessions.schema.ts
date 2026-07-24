@@ -1,4 +1,4 @@
-import { date, integer, pgTable, uuid } from 'drizzle-orm/pg-core'
+import { date, integer, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { books } from './books.schema'
 
 export const readingSessions = pgTable('reading_sessions', {
@@ -10,4 +10,9 @@ export const readingSessions = pgTable('reading_sessions', {
   toPage: integer('to_page').notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
   readAt: date('read_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 })
