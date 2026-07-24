@@ -49,16 +49,11 @@ export class ReadingSessionsService {
   ) {
     await this.booksService.findOne(readingSession.bookId, user.id)
 
-    if (readingSession.toPage < readingSession.fromPage) {
-      throw new BadRequestException(
-        'toPage must be greater than or equal to fromPage',
-      )
-    }
-
-    const pagesRead = readingSession.toPage - readingSession.fromPage + 1
-    const durationSeconds = user.readingSpeed
-      ? Math.round(pagesRead * user.readingSpeed)
-      : 0
+    const durationSeconds = this.calculateDuration(
+      readingSession.fromPage,
+      readingSession.toPage,
+      user.readingSpeed,
+    )
 
     const [created] = await this.db
       .insert(readingSessions)
@@ -78,16 +73,11 @@ export class ReadingSessionsService {
     const fromPage = readingSession.fromPage ?? existing.fromPage
     const toPage = readingSession.toPage ?? existing.toPage
 
-    if (toPage < fromPage) {
-      throw new BadRequestException(
-        'toPage must be greater than or equal to fromPage',
-      )
-    }
-
-    const pagesRead = toPage - fromPage + 1
-    const durationSeconds = user.readingSpeed
-      ? Math.round(pagesRead * user.readingSpeed)
-      : 0
+    const durationSeconds = this.calculateDuration(
+      fromPage,
+      toPage,
+      user.readingSpeed,
+    )
 
     const [updated] = await this.db
       .update(readingSessions)
@@ -102,5 +92,24 @@ export class ReadingSessionsService {
     await this.findOne(id, userId)
 
     await this.db.delete(readingSessions).where(eq(readingSessions.id, id))
+  }
+
+  private calculateDuration(
+    fromPage: number,
+    toPage: number,
+    readingSpeed: number | null,
+  ) {
+    if (toPage < fromPage) {
+      throw new BadRequestException(
+        'toPage must be greater than or equal to fromPage',
+      )
+    }
+
+    const pagesRead = toPage - fromPage + 1
+    const durationSeconds = readingSpeed
+      ? Math.round(pagesRead * readingSpeed)
+      : 0
+
+    return durationSeconds
   }
 }
