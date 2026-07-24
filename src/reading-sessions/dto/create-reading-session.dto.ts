@@ -1,4 +1,4 @@
-import { IsUUID, IsInt, Min } from 'class-validator'
+import { IsUUID, IsInt, Min, IsOptional, IsDateString } from 'class-validator'
 
 export class CreateReadingSessionDto {
   @IsUUID()
@@ -11,4 +11,8 @@ export class CreateReadingSessionDto {
   @IsInt()
   @Min(0)
   toPage: number
+
+  @IsOptional()
+  @IsDateString()
+  readAt?: string
 }
