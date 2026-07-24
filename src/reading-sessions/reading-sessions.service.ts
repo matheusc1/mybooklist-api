@@ -71,9 +71,7 @@ export class ReadingSessionsService {
   async update(
     id: string,
     user: User,
-    readingSession: Partial<
-      Pick<NewReadingSession, 'fromPage' | 'toPage' | 'readAt'>
-    >,
+    readingSession: Partial<Pick<NewReadingSession, 'fromPage' | 'toPage'>>,
   ) {
     const existing = await this.findOne(id, user.id)
 
