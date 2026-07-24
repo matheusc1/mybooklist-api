@@ -1,7 +1,12 @@
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import { books } from '@/database/schema/books.schema'
 import type { Database } from '@/database/database.types'
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { and, eq, gte, lt } from 'drizzle-orm'
 import type { NewBook } from './books.types'
 
@@ -28,12 +33,29 @@ export class BooksService {
   }
 
   async create(book: NewBook) {
+    const currentPage = book.currentPage ?? 0
+
+    if (currentPage > book.totalPages) {
+      throw new BadRequestException(
+        'Current page cannot be greater than total pages.',
+      )
+    }
+
     const [created] = await this.db.insert(books).values(book).returning()
     return created
   }
 
   async update(id: string, userId: string, book: Partial<NewBook>) {
-    await this.findOne(id, userId)
+    const existing = await this.findOne(id, userId)
+
+    const currentPage = book.currentPage ?? existing.currentPage ?? 0
+    const totalPages = book.totalPages ?? existing.totalPages
+
+    if (currentPage > totalPages) {
+      throw new BadRequestException(
+        'Current page cannot be greater than total pages.',
+      )
+    }
 
     const [updated] = await this.db
       .update(books)
