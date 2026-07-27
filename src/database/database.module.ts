@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
+import { Pool } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-serverless'
 import { DATABASE_CONNECTION } from './database-connection'
 import { relations } from './relations'
 
@@ -11,8 +11,10 @@ import { relations } from './relations'
       provide: DATABASE_CONNECTION,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const sql = neon(configService.getOrThrow<string>('DATABASE_URL'))
-        return drizzle({ client: sql, relations })
+        const pool = new Pool({
+          connectionString: configService.getOrThrow<string>('DATABASE_URL'),
+        })
+        return drizzle({ client: pool, relations })
       },
     },
   ],
