@@ -1,6 +1,6 @@
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import { books } from '@/database/schema/books.schema'
-import type { Database } from '@/database/database.types'
+import type { Database, Transaction } from '@/database/database.types'
 import {
   BadRequestException,
   Inject,
@@ -101,7 +101,7 @@ export class BooksService {
     )
   }
 
-  async syncProgress(tx: Database, bookId: string, currentPage: number) {
+  async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
     const [updated] = await tx
       .update(books)
       .set({ currentPage })

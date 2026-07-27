@@ -1,6 +1,6 @@
 import { BooksService } from '@/books/books.service'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
-import type { Database } from '@/database/database.types'
+import type { Database, Transaction } from '@/database/database.types'
 import {
   Injectable,
   Inject,
@@ -94,7 +94,7 @@ export class ReadingSessionsService {
     await this.db.delete(readingSessions).where(eq(readingSessions.id, id))
   }
 
-  private async findLatestByReadAt(tx: Database, bookId: string) {
+  private async findLatestByReadAt(tx: Transaction, bookId: string) {
     const [latest] = await tx.query.readingSessions.findMany({
       where: { bookId },
       orderBy: { readAt: 'desc', updatedAt: 'desc' },
