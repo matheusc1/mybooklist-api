@@ -94,7 +94,7 @@ export class ReadingSessionsService {
     await this.db.delete(readingSessions).where(eq(readingSessions.id, id))
   }
 
-  private findLatestByReadAt(tx: Database, bookId: string) {
+  private async findLatestByReadAt(tx: Database, bookId: string) {
     const [latest] = await tx.query.readingSessions.findMany({
       where: { bookId },
       orderBy: { readAt: 'desc', updatedAt: 'desc' },
