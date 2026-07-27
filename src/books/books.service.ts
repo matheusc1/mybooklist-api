@@ -100,4 +100,14 @@ export class BooksService {
       ),
     )
   }
+
+  async syncProgress(tx: Database, bookId: string, currentPage: number) {
+    const [updated] = await tx
+      .update(books)
+      .set({ currentPage })
+      .where(eq(books.id, bookId))
+      .returning()
+
+    return updated
+  }
 }
