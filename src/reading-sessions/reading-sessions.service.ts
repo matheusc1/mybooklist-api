@@ -55,12 +55,24 @@ export class ReadingSessionsService {
       user.readingSpeed,
     )
 
-    const [created] = await this.db
-      .insert(readingSessions)
-      .values({ ...readingSession, durationSeconds })
-      .returning()
+    return this.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(readingSessions)
+        .values({ ...readingSession, durationSeconds })
+        .returning()
 
-    return created
+      const latest = await this.findLatestByReadAt(tx, readingSession.bookId)
+
+      if (latest) {
+        await this.booksService.syncProgress(
+          tx,
+          readingSession.bookId,
+          latest.toPage,
+        )
+      }
+
+      return created
+    })
   }
 
   async update(
