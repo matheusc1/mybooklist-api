@@ -111,9 +111,17 @@ export class ReadingSessionsService {
   }
 
   async delete(id: string, userId: string) {
-    await this.findOne(id, userId)
+    const existing = await this.findOne(id, userId)
 
-    await this.db.delete(readingSessions).where(eq(readingSessions.id, id))
+    return this.db.transaction(async (tx) => {
+      await tx.delete(readingSessions).where(eq(readingSessions.id, id))
+
+      const latest = await this.findLatestByReadAt(tx, existing.bookId)
+
+      if (latest) {
+        await this.booksService.syncProgress(tx, existing.bookId, latest.toPage)
+      }
+    })
   }
 
   private async findLatestByReadAt(tx: Transaction, bookId: string) {
