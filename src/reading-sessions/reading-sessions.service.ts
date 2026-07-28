@@ -78,7 +78,9 @@ export class ReadingSessionsService {
   async update(
     id: string,
     user: User,
-    readingSession: Partial<Pick<NewReadingSession, 'fromPage' | 'toPage'>>,
+    readingSession: Partial<
+      Pick<NewReadingSession, 'fromPage' | 'toPage' | 'readAt'>
+    >,
   ) {
     const existing = await this.findOne(id, user.id)
 
@@ -91,13 +93,21 @@ export class ReadingSessionsService {
       user.readingSpeed,
     )
 
-    const [updated] = await this.db
-      .update(readingSessions)
-      .set({ ...readingSession, durationSeconds })
-      .where(eq(readingSessions.id, id))
-      .returning()
+    return this.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(readingSessions)
+        .set({ ...readingSession, durationSeconds })
+        .where(eq(readingSessions.id, id))
+        .returning()
 
-    return updated
+      const latest = await this.findLatestByReadAt(tx, existing.bookId)
+
+      if (latest) {
+        await this.booksService.syncProgress(tx, existing.bookId, latest.toPage)
+      }
+
+      return updated
+    })
   }
 
   async delete(id: string, userId: string) {
