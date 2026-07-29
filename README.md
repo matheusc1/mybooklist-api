@@ -1,98 +1,148 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# MyBookList API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> ⚠️ Documento de referência temporário/em construção. Serve como contexto rápido caso o histórico de decisões se perca em algum momento.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Sobre o projeto
 
-## Description
+MyBookList é uma aplicação de tracking de leitura pessoal, o usuário
+cadastra livros, registra sessões de leitura (progresso de página, tempo
+gasto), define metas anuais e acompanha estatísticas de atividade.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Stack
 
-## Project setup
+- **Runtime/Framework:** Node.js, NestJS
+- **Linguagem:** TypeScript
+- **Banco de dados:** PostgreSQL (Neon), via driver `neon-serverless`
+  (WebSocket/`Pool`), necessário para suporte a transactions, já que o
+  driver `neon-http` (usado inicialmente) é stateless e não suporta
+- **ORM:** Drizzle ORM (RQB v2, sintaxe de `where` em object-style)
+- **Autenticação:** OAuth (Google e GitHub) via Passport.js, JWT em cookies
+  httpOnly, guard global (`JwtAuthGuard`) com decorator `@Public()` para
+  rotas abertas
+- **Validação:** class-validator / class-transformer nos DTOs
 
-```bash
-$ npm install
+## Arquitetura
+
+- **Módulo por feature:** `auth`, `users`, `books`, `goals`, `reading-sessions`,
+  `database`
+- **Conexão de banco:** `DatabaseModule` exporta um único token
+  (`DATABASE_CONNECTION`) injetável nos services
+- **Ownership de dados:** toda tabela relacionada a um usuário valida posse
+  via `userId`, em tabelas sem `userId` direto (ex: `reading_sessions`, que
+  só tem `bookId`), a validação é feita via `innerJoin` com `books`
+- **Activity como agregação computada:** não existe uma tabela própria de
+  "atividade", ela é derivada das reading sessions sob demanda, não
+  persistida
+- **Imutabilidade histórica:** `durationSeconds` é calculado e persistido no
+  momento da criação da sessão (usando o `readingSpeed` do usuário *naquele
+  momento*), para que uma mudança futura na velocidade de leitura do usuário
+  não altere retroativamente sessões antigas
+- **Padrões de código:** commits pequenos e escopados por módulo
+  (`feat(goals):`, `feat(reading-sessions):`), soluções diretas e
+  opinativas em vez de abstrações prematuras
+
+## Decisões de design notáveis
+
+### Filosofia geral: a responsabilidade pela precisão do dado é do usuário
+
+Ao longo do desenvolvimento, várias decisões seguiram deliberadamente o
+princípio de **não ser paternalista com dados auto-relatados**, o app não
+trava nem policia informações cuja única "vítima" de um erro é o próprio
+usuário. Esse é o mesmo modelo adotado por apps de tracking pessoal
+consolidados:
+
+- **Strava** não impede o registro de atividades com horários sobrepostos.
+- **MyFitnessPal** não impede logar a mesma refeição duas vezes.
+- **Goodreads** não valida progresso de leitura contra nenhuma fonte externa, o "update progress" é, na prática, um auto-relato que o próprio usuário
+  controla.
+
+Esse princípio só deixaria de valer se o dado passasse a impactar terceiros
+(ranking público, desafios entre usuários, comparações sociais), cenário
+não previsto no escopo atual do produto.
+
+Aplicações concretas dessa filosofia no projeto:
+
+- **Sem bloqueio de registro por falta de `readingSpeed`:** o usuário pode
+  pular a medição de velocidade de leitura e seguir usando o app normalmente;
+  isso só significa que `durationSeconds` de suas sessões fica em `0`
+  (sentinela de "não calculado").
+- **Sessões de leitura podem se sobrepor livremente** (ex: registrar
+  páginas 100–150 duas vezes): não há validação nem aviso. Motivos:
+  responsabilidade do dado é do usuário; custo técnico de um aviso
+  não-bloqueante seria alto (Radix não tem modal stack, e a checagem exigiria
+  buscar a última sessão do usuário mesmo em telas que não carregam esse
+  dado por padrão, como a home/dashboard).
+- **Update manual de campos como `currentPage`, `startedAt`, `completedAt`**
+  não é forçado nem sincronizado quando o usuário edita um livro diretamente
+  (fora do fluxo de reading sessions), se ele esquecer de preencher algo, o
+  app não corrige por ele.
+
+### Sincronização de progresso (`currentPage`) — modelo "última ação vence"
+
+`books.currentPage` não tem uma fonte única e fixa de verdade entre "edição
+manual" e "reading sessions", os dois são tratados como o mesmo tipo de
+evento: *"definir o progresso como X agora"*. Quem venceu por último é quem
+vale.
+
+Como o campo `readAt` de uma reading session é **editável pelo usuário**
+(suporte a registro retroativo de sessões esquecidas), o critério de "mais
+recente" não pode ser a ordem de criação da sessão, precisa refletir a data
+que a leitura *representa*. Por isso:
+
+- Vence a sessão com o maior `readAt` entre todas as sessões do livro.
+- Em caso de empate (mesmo dia), desempata por `updatedAt` (a edição mais
+  recente).
+- `create`/`update`/`delete` de sessão recalculam esse "vencedor" do zero e
+  sincronizam `books.currentPage` de acordo, dentro de uma transaction
+  (garantindo atomicidade entre a escrita na sessão e o update do livro).
+- Se todas as sessões de um livro forem apagadas, `currentPage` **não** é
+  resetado, mantém o último valor conhecido.
+
+Consequência aceita conscientemente: o progresso pode "regredir" se o
+usuário editar `currentPage` manualmente para um valor alto e depois
+registrar uma sessão retroativa com `toPage` menor. Isso é esperado, não é
+um bug, segue a mesma filosofia de autonomia descrita acima.
+
+## Estrutura de módulos (alto nível)
+
+```
+src/
+  auth/              # OAuth (Google/GitHub), JWT, guards, decorators
+  users/             # perfil do usuário, readingSpeed
+  books/             # CRUD de livros, ownership, currentPage/status
+  goals/             # metas anuais de leitura
+  reading-sessions/  # registro de sessões de leitura, sync com books
+  database/          # conexão Drizzle, schema, relations
 ```
 
-## Compile and run the project
+## Como rodar
 
 ```bash
-# development
-$ npm run start
+# instalar dependências
+npm install
 
-# watch mode
-$ npm run start:dev
+# variáveis de ambiente necessárias (.env) [ajustar valores reais]
+DATABASE_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_CALLBACK_URL=
+JWT_SECRET=
+FRONTEND_URL=
 
-# production mode
-$ npm run start:prod
+# rodar em desenvolvimento
+npm run start:dev
 ```
 
-## Run tests
+## Roadmap / pendências
 
-```bash
-# unit tests
-$ npm run test
+Ver `TODO.md` para o detalhamento de decisões em aberto e features
+planejadas (status automático de livros, dashboard, estatísticas semanais e
+mensais de leitura).
 
-# e2e tests
-$ npm run test:e2e
+## Projetos relacionados
 
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- **Frontend:** React, TypeScript, TanStack Router/Query/Form, Radix UI,
+  Base UI, Tailwind CSS v4, Zustand, Zod - [MyBookList](https://github.com/matheusc1/mybooklist)
