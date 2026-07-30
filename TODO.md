@@ -68,40 +68,158 @@ feat(reading-sessions): sync currentPage on session update
 feat(reading-sessions): sync currentPage on session delete
 ```
 
-### 1.3 Atualizar `status`, `startedAt` e `completedAt` automaticamente — pendente
+### 1.3 Atualizar `status`, `startedAt` e `completedAt` automaticamente — concluído e testado
 
 Enum de status real: `reading`, `planned`, `paused`, `completed`, `dropped`.
 
-- Progresso > 0 e status ainda não é `reading` → `status = reading`.
-- `toPage === totalPages` → `status = completed`.
-- Reaproveita a mesma lógica/local de código do item 1.2 (`syncProgress`).
+Modelo implementado: `syncProgress` busca o `existing` book e delega para
+`updateProgress`, que recalcula `status`, `startedAt` e `completedAt` juntos
+a partir de `currentPage` vs `totalPages`, numa única função:
 
-`startedAt` automático: ao transicionar para `reading` via sync, setar
-`startedAt = hoje` só se `existing.startedAt` for `null`, não sobrescreve
-valor já preenchido manualmente.
+```ts
+const isCompleted = currentPage >= existing.totalPages
 
-`startedAt` nunca é limpo automaticamente pelo sync. `paused` e `dropped`
-ainda significam que o livro já foi começado (o único status de "não
-iniciado" é `planned`), então regredir pra esses estados não deve apagar
-`startedAt`. O sync automático nunca leva o livro de volta a `planned`, só
-uma edição manual faria isso, e aí a responsabilidade é do usuário.
+const status = isCompleted
+  ? 'completed'
+  : currentPage > 0
+    ? 'reading'
+    : existing.status
 
-`completedAt` automático: ao detectar `toPage === totalPages` via sync,
-setar `completedAt = hoje` só se `existing.completedAt` for `null`.
+const startedAt =
+  (status === 'reading' || isCompleted) && !existing.startedAt
+    ? hoje
+    : existing.startedAt
 
-`completedAt` é limpo automaticamente quando o status deixa de ser
-`completed` via sync (ex: usuário apaga a sessão que tinha completado o
-livro, e o recálculo de `currentPage` faz `toPage < totalPages` de novo).
-`completedAt` só faz sentido logicamente enquanto `status === 'completed'` for verdade;
-mantê-lo preenchido com outro status geraria inconsistência visível na UI
-(livro mostrando "concluído em X" sem estar marcado como concluído). O
-Goodreads segue essa mesma lógica ao mover um livro de volta pra "currently
-reading".
+const completedAt = isCompleted
+  ? (existing.completedAt ?? hoje)
+  : null
+```
 
-Update manual do usuário (incluindo mudar `status` pra `planned` de
-propósito) pode fazer o que quiser com `startedAt`/`completedAt`, sem trava.
+Pontos da regra:
+- Progresso > 0 e não completo → `status = reading`, **independente do
+  status anterior** (inclusive `dropped` ou `paused` setados manualmente
+  pelo usuário). Uma reading session é a ação mais recente e tem
+  autoridade para recalcular o status, do mesmo jeito que já tem
+  autoridade para recalcular `currentPage` (1.2).
+- `currentPage >= totalPages` → `status = completed`, `completedAt`
+  preenchido só se ainda não tinha valor.
+- `startedAt` preenchido só se ainda não tinha valor, em qualquer
+  transição que implique progresso (`reading` ou `completed`) — cobre
+  inclusive o caso de um livro pular direto de `planned` pra `completed`
+  numa única sessão, sem nunca ter passado por `reading`.
+- `completedAt` é preenchido quando o progresso atinge o total e limpo
+  quando deixa de atingir. Assim, `status` e `completedAt` permanecem
+  sincronizados independentemente do status anterior — a invariante é
+  `status === 'completed' ⟺ completedAt != null`, sempre.
 
-**Commit planejado:** `feat(books): auto-update status, startedAt and completedAt based on progress`
+Bug encontrado e corrigido durante os testes: numa versão anterior, a
+condição de `status` só cobria a transição vindo de `planned`
+(`existing.status === 'planned' ? 'reading' : existing.status`). Isso
+significava que um livro `completed` que regredisse (sessão apagada/editada
+com `toPage` menor) tinha `completedAt` limpo corretamente mas `status`
+continuava `'completed'` — porque a condição não sabia lidar com regressão
+a partir de `completed`. Resultado: livro com `status = completed` e
+`completedAt = null`, o que quebra `countCompleted` (que filtra por status
+**e** por `completedAt` dentro do ano). Corrigido generalizando a condição
+para `currentPage > 0 ? 'reading' : existing.status`, sem depender do
+status anterior específico.
+
+`markAsCompleted` (método antigo, nunca usado em produção, que só setava
+`status = 'completed'` sem tratar ownership, `completedAt` nem as outras
+transições) foi removido e substituído por `updateProgress`.
+
+Cenários testados manualmente (todos passaram):
+1. `planned → reading`: sessão com progresso, sem completar → `status =
+   reading`, `startedAt` preenchido.
+2. `reading → completed`: sessão completa o livro → `status = completed`,
+   `completedAt` preenchido, `startedAt` mantido.
+3. `planned → completed` direto, sem passar por `reading`: `startedAt` e
+   `completedAt` preenchidos na mesma operação.
+4. `completed → reading` (regressão simples): apagar/editar a sessão que
+   completava → `status = reading`, `completedAt = null`, `startedAt`
+   preservado.
+5. Regressão a partir de `dropped`/`paused` setados manualmente: nova
+   sessão com progresso → `status = reading`, sobrescrevendo o valor
+   manual. Confirma que sync tem autoridade sobre edição manual anterior,
+   mesma lógica do 1.2.
+6. `startedAt`/`completedAt` já preenchidos manualmente com datas
+   específicas não são sobrescritos por "hoje" quando o sync roda de novo.
+7. Progresso `0` sem nenhuma sessão: `status` permanece `planned`, datas
+   continuam `null`.
+8. Apagar sessões em sequência até sobrar uma única sessão `0 → 0`: o
+   livro manteve `status = reading` e `startedAt` preenchido mesmo com
+   `currentPage = 0`. Ver discussão abaixo — comportamento deliberado
+   enquanto `resetToPlanned` não for solicitado explicitamente. Depois de implementado, `delete(..., resetToPlanned:
+   true)` leva a `currentPage = 0`, `status = planned`, `startedAt = null`,
+   `completedAt = null`; sem o parâmetro (ou `false`), mantém o estado
+   atual.
+
+**Commits:**
+```
+refactor(books): remove markAsCompleted, add updateProgress
+feat(books): use updateProgress inside syncProgress
+```
+
+#### Caso em aberto: apagar a última sessão de um livro (do teste 8)
+
+O cenário do teste 8 expôs uma pergunta de produto que ainda não tinha sido
+resolvida: quando o usuário apaga a última sessão restante de um livro
+(zero sessões depois do delete), o `status`/`startedAt` deveriam voltar
+para `planned`/`null`, ou permanecer como estavam (comportamento atual)?
+
+Os dois lados:
+- **Manter como está (comportamento atual):** consistente com a decisão já
+  tomada no 1.2 de não resetar `currentPage` quando não sobra sessão. Evita
+  que corrigir um erro de digitação na única sessão existente jogue o
+  usuário de volta à estaca zero. Efeito colateral aceito: o livro pode
+  ficar `reading`/`completed` sem nenhuma sessão existente — um estado
+  "órfão", mas documentável como limitação, do mesmo jeito que o log
+  retroativo já é.
+- **Resetar para `planned`/`null`:** mais intuitivo quando a intenção real
+  do usuário é "não vou ler esse livro agora, volta pra minha lista de
+  planejados". Problema: o sistema não tem como diferenciar essa intenção
+  de "só corrigi um erro de digitação na única sessão que tinha" — os dois
+  casos têm o mesmo sinal técnico (zero sessões restantes).
+
+**Decisão: nenhuma automática.** Em vez de o backend inferir a intenção do
+usuário, a resolução será por confirmação explícita na UI, reaproveitando
+o `DeleteModal` que já existe no fluxo de apagar sessão (diferente do caso
+do item 2.1, aqui não é necessário empilhar modal sobre modal, é só
+estender o conteúdo do modal de confirmação já existente quando a sessão
+sendo apagada for a última do livro).
+
+`ReadingSessionsService.delete` ganha um parâmetro opcional:
+
+```ts
+async delete(id: string, userId: string, resetToPlanned = false) {
+  // ...
+  if (latest) {
+    await this.booksService.syncProgress(tx, existing.bookId, latest.toPage)
+  } else if (resetToPlanned) {
+    await this.booksService.resetProgress(tx, existing.bookId)
+  }
+  // latest ausente e resetToPlanned false → comportamento atual, não toca em nada
+}
+```
+
+Default `false` preserva o comportamento já testado do 1.2. O front decide
+quando *mostrar a opção* (checagem local: contar sessões do livro já
+carregadas em memória, sem chamada extra ao backend) e envia
+`resetToPlanned: true` só se o usuário confirmar no modal — mas essa
+contagem do front é só para UX, não é a fonte de verdade. O backend já
+recalcula "sobrou alguma sessão?" via `findLatestByReadAt`, dentro da mesma
+transaction, depois do delete ter sido efetivado. Isso protege contra
+condição de corrida (ex: outra aba/dispositivo criar uma sessão nova entre o
+front decidir mostrar a opção e o delete ser enviado): se `latest` existir
+nesse recálculo dentro da tx, o branch `resetToPlanned` nem é avaliado,
+independente do que o front achava no momento do clique.
+
+**Pendente:** implementar `BooksService.resetProgress` (zera `currentPage`,
+`status = planned`, `startedAt = null`, `completedAt = null`), o parâmetro
+no `delete`, o DTO/query param equivalente no controller, e a UI condicional
+no `DeleteModal`.
+
+**Commit planejado:** `feat(reading-sessions): add optional resetToPlanned on session delete`
 
 ---
 
