@@ -92,13 +92,13 @@ export class BooksService {
   }
 
   async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
-    const [updated] = await tx
-      .update(books)
-      .set({ currentPage })
-      .where(eq(books.id, bookId))
-      .returning()
+    const existing = await tx.query.books.findFirst({ where: { id: bookId } })
 
-    return updated
+    if (!existing) {
+      throw new NotFoundException(`Book with id ${bookId} not found`)
+    }
+
+    return this.updateProgress(tx, existing, currentPage)
   }
 
   private async updateProgress(
