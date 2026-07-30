@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { and, eq, gte, lt } from 'drizzle-orm'
-import type { NewBook } from './books.types'
+import type { Book, NewBook } from './books.types'
 
 @Injectable()
 export class BooksService {
@@ -72,16 +72,6 @@ export class BooksService {
     await this.db.delete(books).where(eq(books.id, id))
   }
 
-  async markAsCompleted(id: string) {
-    const [book] = await this.db
-      .update(books)
-      .set({ status: 'completed' })
-      .where(eq(books.id, id))
-      .returning()
-
-    return book
-  }
-
   async countCompleted(userId: string, year: number) {
     const startOfYear = new Date(Date.UTC(year, 0, 1))
       .toISOString()
@@ -106,6 +96,37 @@ export class BooksService {
       .update(books)
       .set({ currentPage })
       .where(eq(books.id, bookId))
+      .returning()
+
+    return updated
+  }
+
+  private async updateProgress(
+    tx: Transaction,
+    existing: Book,
+    currentPage: number,
+  ) {
+    const isCompleted = currentPage >= existing.totalPages
+
+    const status = isCompleted
+      ? 'completed'
+      : currentPage > 0
+        ? 'reading'
+        : existing.status
+
+    const startedAt =
+      (status === 'reading' || isCompleted) && !existing.startedAt
+        ? new Date().toISOString().split('T')[0]
+        : existing.startedAt
+
+    const completedAt = isCompleted
+      ? (existing.completedAt ?? new Date().toISOString().split('T')[0])
+      : null
+
+    const [updated] = await tx
+      .update(books)
+      .set({ currentPage, status, startedAt, completedAt })
+      .where(eq(books.id, existing.id))
       .returning()
 
     return updated
