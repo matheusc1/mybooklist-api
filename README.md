@@ -43,65 +43,29 @@ gasto), define metas anuais e acompanha estatísticas de atividade.
 
 ## Decisões de design notáveis
 
-### Filosofia geral: a responsabilidade pela precisão do dado é do usuário
+O projeto segue, de forma deliberada, o princípio de **não ser paternalista
+com dados auto-relatados**. O app não trava nem policia informações cuja
+única "vítima" de um erro é o próprio usuário. É o mesmo modelo adotado por
+apps de tracking pessoal consolidados (Strava, MyFitnessPal, Goodreads).
 
-Ao longo do desenvolvimento, várias decisões seguiram deliberadamente o
-princípio de **não ser paternalista com dados auto-relatados**, o app não
-trava nem policia informações cuja única "vítima" de um erro é o próprio
-usuário. Esse é o mesmo modelo adotado por apps de tracking pessoal
-consolidados:
+Algumas decisões concretas construídas sobre esse princípio:
 
-- **Strava** não impede o registro de atividades com horários sobrepostos.
-- **MyFitnessPal** não impede logar a mesma refeição duas vezes.
-- **Goodreads** não valida progresso de leitura contra nenhuma fonte externa, o "update progress" é, na prática, um auto-relato que o próprio usuário
-  controla.
+- **Sincronização de `currentPage`** entre edição manual e reading sessions
+  segue um modelo de "última ação vence", baseado na data que a leitura
+  representa (`readAt`), não na ordem de criação, já que sessões podem ser
+  registradas retroativamente.
+- **`status`, `startedAt` e `completedAt`** são derivados automaticamente do
+  progresso de páginas, com uma reading session tendo autoridade para
+  sobrescrever até status definidos manualmente (`dropped`, `paused`).
+- **Sessões de leitura podem se sobrepor livremente**, sem validação nem
+  aviso. Essa é uma decisão deliberada, não uma lacuna.
+- **Apagar a última sessão de um livro** não reseta o progresso
+  automaticamente, por padrão, o sistema não consegue distinguir "corrigi
+  um erro de digitação" de "desisti do livro por enquanto", então a escolha
+  é explícita do usuário.
 
-Esse princípio só deixaria de valer se o dado passasse a impactar terceiros
-(ranking público, desafios entre usuários, comparações sociais), cenário
-não previsto no escopo atual do produto.
-
-Aplicações concretas dessa filosofia no projeto:
-
-- **Sem bloqueio de registro por falta de `readingSpeed`:** o usuário pode
-  pular a medição de velocidade de leitura e seguir usando o app normalmente;
-  isso só significa que `durationSeconds` de suas sessões fica em `0`
-  (sentinela de "não calculado").
-- **Sessões de leitura podem se sobrepor livremente** (ex: registrar
-  páginas 100–150 duas vezes): não há validação nem aviso. Motivos:
-  responsabilidade do dado é do usuário; custo técnico de um aviso
-  não-bloqueante seria alto (Radix não tem modal stack, e a checagem exigiria
-  buscar a última sessão do usuário mesmo em telas que não carregam esse
-  dado por padrão, como a home/dashboard).
-- **Update manual de campos como `currentPage`, `startedAt`, `completedAt`**
-  não é forçado nem sincronizado quando o usuário edita um livro diretamente
-  (fora do fluxo de reading sessions), se ele esquecer de preencher algo, o
-  app não corrige por ele.
-
-### Sincronização de progresso (`currentPage`) — modelo "última ação vence"
-
-`books.currentPage` não tem uma fonte única e fixa de verdade entre "edição
-manual" e "reading sessions", os dois são tratados como o mesmo tipo de
-evento: *"definir o progresso como X agora"*. Quem venceu por último é quem
-vale.
-
-Como o campo `readAt` de uma reading session é **editável pelo usuário**
-(suporte a registro retroativo de sessões esquecidas), o critério de "mais
-recente" não pode ser a ordem de criação da sessão, precisa refletir a data
-que a leitura *representa*. Por isso:
-
-- Vence a sessão com o maior `readAt` entre todas as sessões do livro.
-- Em caso de empate (mesmo dia), desempata por `updatedAt` (a edição mais
-  recente).
-- `create`/`update`/`delete` de sessão recalculam esse "vencedor" do zero e
-  sincronizam `books.currentPage` de acordo, dentro de uma transaction
-  (garantindo atomicidade entre a escrita na sessão e o update do livro).
-- Se todas as sessões de um livro forem apagadas, `currentPage` **não** é
-  resetado, mantém o último valor conhecido.
-
-Consequência aceita conscientemente: o progresso pode "regredir" se o
-usuário editar `currentPage` manualmente para um valor alto e depois
-registrar uma sessão retroativa com `toPage` menor. Isso é esperado, não é
-um bug, segue a mesma filosofia de autonomia descrita acima.
+Raciocínio completo de cada decisão (contexto, alternativas consideradas,
+motivos) em `DECISIONS.md`.
 
 ## Estrutura de módulos (alto nível)
 
@@ -138,9 +102,9 @@ npm run start:dev
 
 ## Roadmap / pendências
 
-Ver `TODO.md` para o detalhamento de decisões em aberto e features
-planejadas (status automático de livros, dashboard, estatísticas semanais e
-mensais de leitura).
+Ver `TODO.md` para o detalhamento de features planejadas (dashboard,
+estatísticas semanais e mensais de leitura) e `DECISIONS.md` para decisões
+de arquitetura já tomadas.
 
 ## Projetos relacionados
 
