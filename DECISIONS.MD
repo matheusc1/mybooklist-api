@@ -80,21 +80,21 @@ datas de início/conclusão acompanhassem o progresso automaticamente.
 que recalcula os três campos juntos a partir de `currentPage` vs `totalPages`:
 
 ```ts
-const isCompleted = currentPage >= existing.totalPages
+const isCompleted = currentPage >= book.totalPages
 
 const status = isCompleted
   ? 'completed'
   : currentPage > 0
     ? 'reading'
-    : existing.status
+    : book.status
 
 const startedAt =
-  (status === 'reading' || isCompleted) && !existing.startedAt
+  (status === 'reading' || isCompleted) && !book.startedAt
     ? hoje
-    : existing.startedAt
+    : book.startedAt
 
 const completedAt = isCompleted
-  ? (existing.completedAt ?? hoje)
+  ? (book.completedAt ?? hoje)
   : null
 ```
 
@@ -110,7 +110,7 @@ Regras:
 
 **Bug encontrado e corrigido durante os testes:** uma versão anterior só
 cobria a transição vinda de `planned`
-(`existing.status === 'planned' ? 'reading' : existing.status`). Um livro
+(`book.status === 'planned' ? 'reading' : book.status`). Um livro
 `completed` que regredisse tinha `completedAt` limpo corretamente mas
 `status` continuava `'completed'` — quebrando `countCompleted`, que filtra
 por status **e** por `completedAt` dentro do ano. Corrigido generalizando a
