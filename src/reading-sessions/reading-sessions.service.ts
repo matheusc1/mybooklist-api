@@ -110,7 +110,7 @@ export class ReadingSessionsService {
     })
   }
 
-  async delete(id: string, userId: string) {
+  async delete(id: string, userId: string, resetToPlanned = false) {
     const existing = await this.findOne(id, userId)
 
     return this.db.transaction(async (tx) => {
@@ -120,6 +120,8 @@ export class ReadingSessionsService {
 
       if (latest) {
         await this.booksService.syncProgress(tx, existing.bookId, latest.toPage)
+      } else if (resetToPlanned) {
+        await this.booksService.resetProgress(tx, existing.bookId)
       }
     })
   }
