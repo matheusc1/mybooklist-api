@@ -131,4 +131,25 @@ export class BooksService {
 
     return updated
   }
+
+  async resetProgress(tx: Transaction, bookId: string) {
+    const book = await tx.query.books.findFirst({ where: { id: bookId } })
+
+    if (!book) {
+      throw new NotFoundException(`Book with id ${bookId} not found`)
+    }
+
+    const [updated] = await tx
+      .update(books)
+      .set({
+        currentPage: 0,
+        status: 'planned',
+        startedAt: null,
+        completedAt: null,
+      })
+      .where(eq(books.id, book.id))
+      .returning()
+
+    return updated
+  }
 }
