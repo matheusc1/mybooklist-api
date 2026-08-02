@@ -92,41 +92,41 @@ export class BooksService {
   }
 
   async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
-    const existing = await tx.query.books.findFirst({ where: { id: bookId } })
+    const book = await tx.query.books.findFirst({ where: { id: bookId } })
 
-    if (!existing) {
+    if (!book) {
       throw new NotFoundException(`Book with id ${bookId} not found`)
     }
 
-    return this.updateProgress(tx, existing, currentPage)
+    return this.updateProgress(tx, book, currentPage)
   }
 
   private async updateProgress(
     tx: Transaction,
-    existing: Book,
+    book: Book,
     currentPage: number,
   ) {
-    const isCompleted = currentPage >= existing.totalPages
+    const isCompleted = currentPage >= book.totalPages
 
     const status = isCompleted
       ? 'completed'
       : currentPage > 0
         ? 'reading'
-        : existing.status
+        : book.status
 
     const startedAt =
-      (status === 'reading' || isCompleted) && !existing.startedAt
+      (status === 'reading' || isCompleted) && !book.startedAt
         ? new Date().toISOString().split('T')[0]
-        : existing.startedAt
+        : book.startedAt
 
     const completedAt = isCompleted
-      ? (existing.completedAt ?? new Date().toISOString().split('T')[0])
+      ? (book.completedAt ?? new Date().toISOString().split('T')[0])
       : null
 
     const [updated] = await tx
       .update(books)
       .set({ currentPage, status, startedAt, completedAt })
-      .where(eq(books.id, existing.id))
+      .where(eq(books.id, book.id))
       .returning()
 
     return updated
