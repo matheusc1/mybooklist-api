@@ -77,7 +77,7 @@ refactor(books): remove markAsCompleted, add updateProgress
 feat(books): use updateProgress inside syncProgress
 ```
 
-#### Pendente: `resetToPlanned` opcional no delete de sessão
+#### `resetToPlanned` opcional no delete de sessão - concluído
 
 Quando o delete deixa um livro sem nenhuma sessão, o reset para
 `planned`/`null` não é automático, é uma opção explícita no `DeleteModal`.
@@ -94,14 +94,18 @@ async delete(id: string, userId: string, resetToPlanned = false) {
 }
 ```
 
-- [ ] `BooksService.resetProgress` (zera `currentPage`, `status = planned`,
+- [x] `BooksService.resetProgress` (zera `currentPage`, `status = planned`,
       `startedAt = null`, `completedAt = null`)
-- [ ] Parâmetro `resetToPlanned` no `delete` do service
-- [ ] Query param no controller (`DELETE /reading-sessions/:id?resetToPlanned=true`),
-      validado via DTO aplicado a `@Query()` — não usar `@Body()` em DELETE
-- [ ] UI condicional no `DeleteModal` (checkbox, só quando é a última sessão do livro)
+- [x] Parâmetro `resetToPlanned` no `delete` do service
+- [x] Query param no controller (`DELETE /reading-sessions/:id?resetToPlanned=true`),
+      validado via DTO aplicado a `@Query()`. Não usar `@Body()` em DELETE
 
-**Commit planejado:** `feat(reading-sessions): add optional resetToPlanned on session delete`
+**Commits:**
+```
+feat(books): add resetProgress method
+feat(reading-sessions): add optional resetToPlanned on session delete
+feat(reading-sessions): add resetToPlanned query param on session delete endpoint
+```
 
 ---
 
