@@ -6,10 +6,12 @@ import {
   Delete,
   Param,
   Body,
+  Query,
 } from '@nestjs/common'
 import { ReadingSessionsService } from './reading-sessions.service'
 import { CreateReadingSessionDto } from './dto/create-reading-session.dto'
 import { UpdateReadingSessionDto } from './dto/update-reading-session.dto'
+import { DeleteReadingSessionDto } from './dto/delete-reading-session.dto'
 import { CurrentUser } from '@/auth/decorators/current-user.decorator'
 import type { User } from '@/users/users.types'
 
@@ -47,7 +49,11 @@ export class ReadingSessionsController {
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.readingSessionsService.delete(id, user.id)
+  delete(
+    @Param('id') id: string,
+    @CurrentUser() user: User,
+    @Query() query: DeleteReadingSessionDto,
+  ) {
+    return this.readingSessionsService.delete(id, user.id, query.resetToPlanned)
   }
 }
