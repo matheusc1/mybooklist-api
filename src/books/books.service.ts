@@ -152,4 +152,11 @@ export class BooksService {
 
     return updated
   }
+
+  async findCurrentlyReading(userId: string) {
+    return this.db.query.books.findFirst({
+      where: { userId, status: 'reading' },
+      orderBy: { updatedAt: 'desc' },
+    })
+  }
 }
