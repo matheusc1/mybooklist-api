@@ -118,26 +118,40 @@ Não implementado, de propósito. Raciocínio completo em `DECISIONS.md`
 
 ---
 
-## Infraestrutura — pendências de baixa prioridade
+## Infraestrutura — concluído
 
-- [ ] Fechar o `Pool` no shutdown (`onModuleDestroy` no `DatabaseModule` +
-      `app.enableShutdownHooks()` no `main.ts`). Não bloqueante hoje (dev
-      local, sem deploy contínuo); o auto-suspend do Neon já cobre a maior
-      parte do risco de conexão ociosa.
+- [x] Fechar o `Pool` no shutdown (`onModuleDestroy` no `DatabaseModule` +
+      `app.enableShutdownHooks()` no `main.ts`).
 
 ---
 
-## Prioridade 3 — Dashboard / Activity (futuro)
+## Prioridade 3 — Dashboard / Activity
 
-Ordem de implementação, da consulta mais simples pra mais complexa:
+Dois módulos novos de consulta (read-only), expondo apenas endpoints `GET`.
+Cada service de orquestração apenas coordena os services de domínio e
+formata a resposta, sem schema próprio e sem métodos de escrita. Consultas
+específicas ficam nos services de domínio, responsáveis apenas pelo acesso
+aos dados do seu próprio domínio, nunca no service de orquestração.
 
-1. [ ] `findCurrentlyReading` (books) — query simples, filtro por status
-2. [ ] `findLastCompleted(quantity: number)` (books) — query simples, filtro + ordenação
+Ordem de implementação, da consulta mais simples para a mais complexa:
+
+1. [ ] `findCurrentlyReading` (books) — consulta simples, filtro por status
+2. [ ] `findLastCompleted(quantity: number)` (books) — consulta simples, filtro + ordenação
 3. [ ] `weeklyStats` (reading-sessions) — pages read, reading time, days streak (pode ser > 7)
 4. [ ] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
-5. [ ] `monthlyActivity` (reading-sessions) — sessões de um mês específico;
-      equivalente ao endpoint `GET /activity?month=YYYY-MM`, já decidido como
-      agregação computada (não uma tabela própria)
+5. [ ] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
+       leitura de um mês específico (`YYYY-MM`), equivalente ao endpoint
+       `GET /activity?month=YYYY-MM`; agregação computada, sem tabela própria
+
+#### Dashboard
+
+6. [ ] `DashboardModule` — controller + `DashboardService`, compõe
+       `findCurrentlyReading` + `findLastCompleted` + `weeklyStats`
+
+#### Activity
+
+7. [ ] `ActivityModule` — controller + `ActivityService`, usa
+       `monthlyStats` + `monthlyActivity`
 
 **Commits planejados:**
 ```
@@ -146,4 +160,6 @@ feat(books): add findLastCompleted
 feat(reading-sessions): add weeklyStats
 feat(reading-sessions): add monthlyStats
 feat(reading-sessions): add monthlyActivity
+feat(dashboard): add dashboard module
+feat(activity): add activity module
 ```
