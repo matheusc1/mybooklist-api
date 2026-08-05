@@ -159,4 +159,20 @@ export class BooksService {
       orderBy: { updatedAt: 'desc' },
     })
   }
+
+  async findRecentActivity(userId: string, quantity: number) {
+    return this.db.query.books.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      limit: quantity,
+    })
+  }
+
+  async findLastCompleted(userId: string, quantity: number) {
+    return this.db.query.books.findMany({
+      where: { userId, status: 'completed' },
+      orderBy: { completedAt: 'desc' },
+      limit: quantity,
+    })
+  }
 }
