@@ -135,18 +135,23 @@ aos dados do seu próprio domínio, nunca no service de orquestração.
 
 Ordem de implementação, da consulta mais simples para a mais complexa:
 
-1. [ ] `findCurrentlyReading` (books) — consulta simples, filtro por status
-2. [ ] `findLastCompleted(quantity: number)` (books) — consulta simples, filtro + ordenação
-3. [ ] `weeklyStats` (reading-sessions) — pages read, reading time, days streak (pode ser > 7)
-4. [ ] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
-5. [ ] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
+1. [x] `findCurrentlyReading` (books) — último livro com `status: reading`,
+       ordenado por `updatedAt`
+2. [ ] `findRecentActivity(quantity: number)` (books) — últimos livros
+       tocados (qualquer status), ordenado por `updatedAt`
+3. [ ] `findLastCompleted(quantity: number)` (books) — filtro por
+       `status: completed` + ordenação
+4. [ ] `weeklyStats` (reading-sessions) — pages read, reading time, days streak (pode ser > 7)
+5. [ ] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
+6. [ ] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
        leitura de um mês específico (`YYYY-MM`), equivalente ao endpoint
        `GET /activity?month=YYYY-MM`; agregação computada, sem tabela própria
 
 #### Dashboard
 
-6. [ ] `DashboardModule` — controller + `DashboardService`, compõe
-       `findCurrentlyReading` + `findLastCompleted` + `weeklyStats`
+7. [ ] `DashboardModule` — controller + `DashboardService`, compõe
+       `findCurrentlyReading` + `findRecentActivity` + `findLastCompleted`
+       + `weeklyStats`
 
 #### Activity
 
@@ -156,6 +161,7 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
 **Commits planejados:**
 ```
 feat(books): add findCurrentlyReading
+feat(books): add findRecentActivity
 feat(books): add findLastCompleted
 feat(reading-sessions): add weeklyStats
 feat(reading-sessions): add monthlyStats
