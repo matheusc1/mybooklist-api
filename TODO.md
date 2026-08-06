@@ -137,11 +137,17 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
 
 1. [x] `findCurrentlyReading` (books) — último livro com `status: reading`,
        ordenado por `updatedAt`
-2. [ ] `findRecentActivity(quantity: number)` (books) — últimos livros
+2. [x] `findRecentActivity(quantity: number)` (books) — últimos livros
        tocados (qualquer status), ordenado por `updatedAt`
-3. [ ] `findLastCompleted(quantity: number)` (books) — filtro por
+3. [x] `findLastCompleted(quantity: number)` (books) — filtro por
        `status: completed` + ordenação
-4. [ ] `weeklyStats` (reading-sessions) — pages read, reading time, days streak (pode ser > 7)
+4. [x] `weeklyStats` (reading-sessions) — semana fixa segunda–domingo;
+       retorna `pagesByDay` (7 dias, Mon–Sun, para o gráfico do front),
+       `totalPagesRead`, `totalReadingMinutes` (backend soma em segundos e
+       converte, front formata em hrs/min), `mostActiveDay` (por páginas,
+       reaproveitado nos dois cards do dashboard) e `daysStreak` (pode
+       passar de 7, olha o histórico completo do usuário, não só a semana
+       corrente)
 5. [ ] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
 6. [ ] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
        leitura de um mês específico (`YYYY-MM`), equivalente ao endpoint
@@ -161,9 +167,8 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
 **Commits planejados:**
 ```
 feat(books): add findCurrentlyReading
-feat(books): add findRecentActivity
-feat(books): add findLastCompleted
-feat(reading-sessions): add weeklyStats
+feat(books): add findRecentActivity and findLastCompleted
+feat(reading-sessions): add weeklyStats and extract stats service
 feat(reading-sessions): add monthlyStats
 feat(reading-sessions): add monthlyActivity
 feat(dashboard): add dashboard module
