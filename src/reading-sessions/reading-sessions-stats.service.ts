@@ -5,6 +5,7 @@ import { readingSessions } from '@/database/schema/reading-sessions.schema'
 import { Injectable, Inject } from '@nestjs/common'
 import { eq, and, gte, lte, desc } from 'drizzle-orm'
 import type { ReadingSession } from './reading-sessions.types'
+import { formatDate } from '@/common/format-date'
 
 @Injectable()
 export class ReadingSessionsStatsService {
@@ -71,8 +72,8 @@ export class ReadingSessionsStatsService {
     sunday.setDate(monday.getDate() + 6)
 
     return {
-      start: this.formatDate(monday),
-      end: this.formatDate(sunday),
+      start: formatDate(monday),
+      end: formatDate(sunday),
     }
   }
 
@@ -90,7 +91,7 @@ export class ReadingSessionsStatsService {
     return this.weekDayLabels.map((day, index) => {
       const date = new Date(start)
       date.setDate(start.getDate() + index)
-      const dateKey = this.formatDate(date)
+      const dateKey = formatDate(date)
 
       return { day, pages: pagesByDate.get(dateKey) ?? 0 }
     })
@@ -107,7 +108,7 @@ export class ReadingSessionsStatsService {
     if (sessions.length === 0) return 0
 
     const readDates = new Set(sessions.map((s) => s.readAt))
-    const today = this.formatDate(new Date())
+    const today = formatDate(new Date())
     const cursor = new Date()
 
     if (!readDates.has(today)) {
@@ -116,18 +117,11 @@ export class ReadingSessionsStatsService {
 
     let streak = 0
 
-    while (readDates.has(this.formatDate(cursor))) {
+    while (readDates.has(formatDate(cursor))) {
       streak++
       cursor.setDate(cursor.getDate() - 1)
     }
 
     return streak
-  }
-
-  private formatDate(date: Date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
   }
 }

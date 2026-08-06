@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common'
 import { and, eq, gte, lt } from 'drizzle-orm'
 import type { Book, NewBook } from './books.types'
+import { formatDate } from '@/common/format-date'
 
 @Injectable()
 export class BooksService {
@@ -116,11 +117,11 @@ export class BooksService {
 
     const startedAt =
       (status === 'reading' || isCompleted) && !book.startedAt
-        ? new Date().toISOString().split('T')[0]
+        ? formatDate(new Date())
         : book.startedAt
 
     const completedAt = isCompleted
-      ? (book.completedAt ?? new Date().toISOString().split('T')[0])
+      ? (book.completedAt ?? formatDate(new Date()))
       : null
 
     const [updated] = await tx
