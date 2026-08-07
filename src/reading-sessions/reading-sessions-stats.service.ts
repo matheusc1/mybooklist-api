@@ -23,26 +23,12 @@ export class ReadingSessionsStatsService {
 
   async weeklyStats(userId: string) {
     const { start, end } = this.getCurrentWeekRange()
-
-    const sessions = await this.db
-      .select({ readingSession: readingSessions })
-      .from(readingSessions)
-      .innerJoin(books, eq(readingSessions.bookId, books.id))
-      .where(
-        and(
-          eq(books.userId, userId),
-          gte(readingSessions.readAt, start),
-          lte(readingSessions.readAt, end),
-        ),
-      )
-      .then((rows) => rows.map((r) => r.readingSession))
+    const sessions = await this.findSessionsInRange(userId, start, end)
 
     const pagesByDay = this.groupPagesByDay(sessions, start)
 
     const totalPagesRead = pagesByDay.reduce((sum, d) => sum + d.pages, 0)
-    const totalReadingMinutes = Math.round(
-      sessions.reduce((sum, s) => sum + s.durationSeconds, 0) / 60,
-    )
+    const totalReadingMinutes = this.sumMinutes(sessions)
 
     const mostActiveDay =
       totalPagesRead === 0
@@ -58,6 +44,31 @@ export class ReadingSessionsStatsService {
       mostActiveDay,
       daysStreak,
     }
+  }
+
+  private async findSessionsInRange(
+    userId: string,
+    start: string,
+    end: string,
+  ) {
+    return this.db
+      .select({ readingSession: readingSessions })
+      .from(readingSessions)
+      .innerJoin(books, eq(readingSessions.bookId, books.id))
+      .where(
+        and(
+          eq(books.userId, userId),
+          gte(readingSessions.readAt, start),
+          lte(readingSessions.readAt, end),
+        ),
+      )
+      .then((rows) => rows.map((r) => r.readingSession))
+  }
+
+  private sumMinutes(sessions: ReadingSession[]) {
+    return Math.round(
+      sessions.reduce((sum, s) => sum + s.durationSeconds, 0) / 60,
+    )
   }
 
   private getCurrentWeekRange() {
