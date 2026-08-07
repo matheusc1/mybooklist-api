@@ -2,7 +2,7 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import { readingSessions } from '@/database/schema/reading-sessions.schema'
-import { Injectable, Inject } from '@nestjs/common'
+import { BadRequestException, Injectable, Inject } from '@nestjs/common'
 import { eq, and, gte, lte, desc } from 'drizzle-orm'
 import type { ReadingSession } from './reading-sessions.types'
 import { formatDate } from '@/common/format-date'
@@ -46,6 +46,22 @@ export class ReadingSessionsStatsService {
     }
   }
 
+  async monthlyStats(userId: string, month: string) {
+    const { start, end } = this.getMonthRange(month)
+    const sessions = await this.findSessionsInRange(userId, start, end)
+
+    const pages = this.sumPages(sessions)
+    const readingTime = this.sumMinutes(sessions)
+    const activeDays = new Set(sessions.map((s) => s.readAt)).size
+
+    return {
+      sessions: sessions.length,
+      pages,
+      readingTime,
+      activeDays,
+    }
+  }
+
   private async findSessionsInRange(
     userId: string,
     start: string,
@@ -63,6 +79,10 @@ export class ReadingSessionsStatsService {
         ),
       )
       .then((rows) => rows.map((r) => r.readingSession))
+  }
+
+  private sumPages(sessions: ReadingSession[]) {
+    return sessions.reduce((sum, s) => sum + (s.toPage - s.fromPage + 1), 0)
   }
 
   private sumMinutes(sessions: ReadingSession[]) {
@@ -85,6 +105,22 @@ export class ReadingSessionsStatsService {
     return {
       start: formatDate(monday),
       end: formatDate(sunday),
+    }
+  }
+
+  private getMonthRange(month: string) {
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      throw new BadRequestException('month must be in YYYY-MM format')
+    }
+
+    const [year, monthNumber] = month.split('-').map(Number)
+
+    const start = new Date(year, monthNumber - 1, 1)
+    const end = new Date(year, monthNumber, 0) // day 0 of next month = last day of this month
+
+    return {
+      start: formatDate(start),
+      end: formatDate(end),
     }
   }
 
