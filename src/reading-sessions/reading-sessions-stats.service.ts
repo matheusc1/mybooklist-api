@@ -62,6 +62,49 @@ export class ReadingSessionsStatsService {
     }
   }
 
+  async monthlyActivity(userId: string, month: string) {
+    const { start, end } = this.getMonthRange(month)
+
+    const rows = await this.db
+      .select({
+        date: readingSessions.readAt,
+        bookId: readingSessions.bookId,
+        title: books.title,
+        author: books.author,
+        coverUrl: books.coverUrl,
+        fromPage: readingSessions.fromPage,
+        toPage: readingSessions.toPage,
+        duration: readingSessions.durationSeconds,
+      })
+      .from(readingSessions)
+      .innerJoin(books, eq(readingSessions.bookId, books.id))
+      .where(
+        and(
+          eq(books.userId, userId),
+          gte(readingSessions.readAt, start),
+          lte(readingSessions.readAt, end),
+        ),
+      )
+      .orderBy(readingSessions.readAt, readingSessions.createdAt)
+
+    const calendarMap = new Map<string, typeof rows>()
+
+    for (const row of rows) {
+      const existing = calendarMap.get(row.date) ?? []
+      existing.push(row)
+      calendarMap.set(row.date, existing)
+    }
+
+    return Array.from(calendarMap.entries()).map(([date, sessions]) => ({
+      date,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      sessions: sessions.map(({ date: _date, duration, ...session }) => ({
+        ...session,
+        duration: Math.round(duration / 60),
+      })),
+    }))
+  }
+
   private async findSessionsInRange(
     userId: string,
     start: string,
