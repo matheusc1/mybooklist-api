@@ -161,9 +161,13 @@ export class BooksService {
     })
   }
 
-  async findRecentActivity(userId: string, quantity: number) {
+  async findRecentActivity(
+    userId: string,
+    quantity: number,
+    excludeId?: string,
+  ) {
     return this.db.query.books.findMany({
-      where: { userId },
+      where: excludeId ? { userId, id: { ne: excludeId } } : { userId },
       orderBy: { updatedAt: 'desc' },
       limit: quantity,
     })
