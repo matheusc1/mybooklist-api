@@ -148,8 +148,8 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
        reaproveitado nos dois cards do dashboard) e `daysStreak` (pode
        passar de 7, olha o histórico completo do usuário, não só a semana
        corrente)
-5. [ ] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
-6. [ ] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
+5. [x] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
+6. [x] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
        leitura de um mês específico (`YYYY-MM`), equivalente ao endpoint
        `GET /activity?month=YYYY-MM`; agregação computada, sem tabela própria
 
@@ -164,13 +164,11 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
 7. [ ] `ActivityModule` — controller + `ActivityService`, usa
        `monthlyStats` + `monthlyActivity`
 
-**Commits planejados:**
+**Commits:**
 ```
 feat(books): add findCurrentlyReading
 feat(books): add findRecentActivity and findLastCompleted
 feat(reading-sessions): add weeklyStats and extract stats service
 feat(reading-sessions): add monthlyStats
 feat(reading-sessions): add monthlyActivity
-feat(dashboard): add dashboard module
-feat(activity): add activity module
 ```
