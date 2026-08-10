@@ -10,13 +10,14 @@ export class DashboardService {
   ) {}
 
   async getDashboard(userId: string) {
-    const [currentlyReading, recentActivity, lastCompleted, weeklyStats] =
-      await Promise.all([
-        this.booksService.findCurrentlyReading(userId),
-        this.booksService.findRecentActivity(userId, 3),
-        this.booksService.findLastCompleted(userId, 3),
-        this.readingSessionsStatsService.weeklyStats(userId),
-      ])
+    const currentlyReading =
+      await this.booksService.findCurrentlyReading(userId)
+
+    const [recentActivity, lastCompleted, weeklyStats] = await Promise.all([
+      this.booksService.findRecentActivity(userId, 3, currentlyReading?.id),
+      this.booksService.findLastCompleted(userId, 3),
+      this.readingSessionsStatsService.weeklyStats(userId),
+    ])
 
     return { currentlyReading, recentActivity, lastCompleted, weeklyStats }
   }
