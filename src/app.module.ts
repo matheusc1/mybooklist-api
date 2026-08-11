@@ -8,6 +8,8 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { BooksModule } from './books/books.module'
 import { GoalsModule } from './goals/goals.module'
 import { ReadingSessionsModule } from './reading-sessions/reading-sessions.module'
+import { DashboardModule } from './dashboard/dashboard.module'
+import { ActivityModule } from './activity/activity.module'
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { ReadingSessionsModule } from './reading-sessions/reading-sessions.modul
     BooksModule,
     GoalsModule,
     ReadingSessionsModule,
+    DashboardModule,
+    ActivityModule,
   ],
   providers: [
     {
