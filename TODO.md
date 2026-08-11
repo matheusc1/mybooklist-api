@@ -127,11 +127,8 @@ Não implementado, de propósito. Raciocínio completo em `DECISIONS.md`
 
 ## Prioridade 3 — Dashboard / Activity
 
-Dois módulos novos de consulta (read-only), expondo apenas endpoints `GET`.
-Cada service de orquestração apenas coordena os services de domínio e
-formata a resposta, sem schema próprio e sem métodos de escrita. Consultas
-específicas ficam nos services de domínio, responsáveis apenas pelo acesso
-aos dados do seu próprio domínio, nunca no service de orquestração.
+Dois módulos novos de consulta (read-only), cada um com service de
+orquestração que coordena os services de domínio, sem schema próprio.
 
 Ordem de implementação, da consulta mais simples para a mais complexa:
 
@@ -155,13 +152,13 @@ Ordem de implementação, da consulta mais simples para a mais complexa:
 
 #### Dashboard
 
-7. [ ] `DashboardModule` — controller + `DashboardService`, compõe
+7. [x] `DashboardModule` — controller + `DashboardService`, compõe
        `findCurrentlyReading` + `findRecentActivity` + `findLastCompleted`
        + `weeklyStats`
 
 #### Activity
 
-7. [ ] `ActivityModule` — controller + `ActivityService`, usa
+8. [x] `ActivityModule` — controller + `ActivityService`, usa
        `monthlyStats` + `monthlyActivity`
 
 **Commits:**
@@ -171,4 +168,17 @@ feat(books): add findRecentActivity and findLastCompleted
 feat(reading-sessions): add weeklyStats and extract stats service
 feat(reading-sessions): add monthlyStats
 feat(reading-sessions): add monthlyActivity
+feat(dashboard): add dashboard module
+feat(activity): add activity module
 ```
+
+---
+
+## Prioridade 4 — Qualidade e documentação
+
+Ordem: documentação → inversão de dependência → testes.
+
+1. [ ] Documentação da API (decorators `@nestjs/swagger`, UI via Scalar)
+2. [ ] Inversão de dependência: extrair repositories entre os services e
+       o Drizzle
+3. [ ] Testes unitários
