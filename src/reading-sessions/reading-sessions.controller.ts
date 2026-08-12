@@ -7,6 +7,8 @@ import {
   Param,
   Body,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common'
 import { ReadingSessionsService } from './reading-sessions.service'
 import { CreateReadingSessionDto } from './dto/create-reading-session.dto'
@@ -48,6 +50,7 @@ export class ReadingSessionsController {
     return this.readingSessionsService.update(id, user, updateReadingSessionDto)
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   delete(
     @Param('id') id: string,
