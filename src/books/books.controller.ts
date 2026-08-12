@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -47,6 +49,7 @@ export class BooksController {
     return this.booksService.update(id, user.id, updateBookDto)
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async delete(@Param('id') id: string, @CurrentUser() user: User) {
     return this.booksService.delete(id, user.id)
