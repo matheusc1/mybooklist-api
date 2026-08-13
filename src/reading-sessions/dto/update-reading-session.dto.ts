@@ -1,4 +1,4 @@
-import { PartialType, PickType } from '@nestjs/mapped-types'
+import { PartialType, PickType } from '@nestjs/swagger'
 import { CreateReadingSessionDto } from './create-reading-session.dto'
 
 export class UpdateReadingSessionDto extends PartialType(
