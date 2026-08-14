@@ -178,7 +178,7 @@ feat(activity): add activity module
 
 Ordem: documentação → inversão de dependência → testes.
 
-1. [ ] Documentação da API (decorators `@nestjs/swagger`, UI via Scalar)
+1. [x] Documentação da API (decorators `@nestjs/swagger`, UI via Scalar)
 2. [ ] Inversão de dependência: extrair repositories entre os services e
        o Drizzle
 3. [ ] Testes unitários
