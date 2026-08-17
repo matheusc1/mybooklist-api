@@ -6,6 +6,9 @@ import {
   Res,
   UseGuards,
   UseFilters,
+  HttpStatus,
+  HttpCode,
+  Post,
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import {
@@ -83,14 +86,13 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Log out' })
-  @ApiFoundResponse({
-    description: 'Clears the session cookie and redirects to the frontend.',
-  })
-  @Get('logout')
+  @ApiOkResponse({ description: 'Clears the session cookie.' })
+  @Post('logout')
   @Public()
-  logout(@Res() res: Response) {
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token')
-    res.redirect(process.env.FRONTEND_URL ?? 'http://localhost:5173')
+    return { message: 'Logged out successfully' }
   }
 
   @ApiOperation({ summary: 'Get the currently authenticated user' })
