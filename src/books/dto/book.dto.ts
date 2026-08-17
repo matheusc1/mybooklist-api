@@ -14,6 +14,9 @@ export class BookDto {
   @ApiProperty()
   author: string
 
+  @ApiProperty()
+  genre: string
+
   @ApiProperty({ nullable: true })
   coverUrl: string | null
 

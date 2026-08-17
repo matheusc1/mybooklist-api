@@ -24,6 +24,7 @@ export const books = pgTable('books', {
     .references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   author: text('author').notNull(),
+  genre: text('genre').notNull(),
   coverUrl: text('cover_url'),
   totalPages: integer('total_pages').notNull(),
   currentPage: integer('current_page').default(0),
