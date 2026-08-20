@@ -33,15 +33,14 @@ export class GoalsService {
   }
 
   async upsert(userId: string, target: number) {
-    const [goal] = await this.db
+    await this.db
       .insert(goals)
       .values({ userId, year: this.year, target })
       .onConflictDoUpdate({
         target: [goals.userId, goals.year],
         set: { target },
       })
-      .returning()
 
-    return goal
+    return this.findWithProgress(userId)
   }
 }

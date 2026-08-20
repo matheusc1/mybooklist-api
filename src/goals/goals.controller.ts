@@ -26,6 +26,7 @@ export class GoalsController {
   }
 
   @ApiOperation({ summary: 'Create or update the current year reading goal' })
+  @ApiOkResponse({ type: GoalProgressDto })
   @ApiBadRequestResponse({ description: 'Invalid target.' })
   @Post()
   async upsert(@Body() dto: UpsertGoalDto, @CurrentUser() user: User) {
