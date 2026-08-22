@@ -67,6 +67,7 @@ export class ReadingSessionsStatsService {
 
     const rows = await this.db
       .select({
+        id: readingSessions.id,
         date: readingSessions.readAt,
         bookId: readingSessions.bookId,
         title: books.title,

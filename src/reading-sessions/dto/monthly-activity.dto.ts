@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger'
 
 export class CalendarSessionDto {
   @ApiProperty()
+  id: string
+
+  @ApiProperty()
   bookId: string
 
   @ApiProperty()
