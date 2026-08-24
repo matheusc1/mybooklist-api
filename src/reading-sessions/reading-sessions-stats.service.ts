@@ -2,10 +2,10 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import { readingSessions } from '@/database/schema/reading-sessions.schema'
-import { BadRequestException, Injectable, Inject } from '@nestjs/common'
-import { eq, and, gte, lte, desc } from 'drizzle-orm'
-import type { ReadingSession } from './reading-sessions.types'
+import { BadRequestException, Inject, Injectable } from '@nestjs/common'
+import { and, desc, eq, gte, lte } from 'drizzle-orm'
 import { formatDate } from '@/common/format-date'
+import type { ReadingSession } from './reading-sessions.types'
 
 @Injectable()
 export class ReadingSessionsStatsService {
@@ -22,10 +22,10 @@ export class ReadingSessionsStatsService {
   ]
 
   async weeklyStats(userId: string) {
-    const { start, end } = this.getCurrentWeekRange()
+    const { start, end, startDate } = this.getCurrentWeekRange()
     const sessions = await this.findSessionsInRange(userId, start, end)
 
-    const pagesByDay = this.groupPagesByDay(sessions, start)
+    const pagesByDay = this.groupPagesByDay(sessions, startDate)
 
     const totalPagesRead = pagesByDay.reduce((sum, d) => sum + d.pages, 0)
     const totalReadingMinutes = this.sumMinutes(sessions)
@@ -137,7 +137,7 @@ export class ReadingSessionsStatsService {
 
   private getCurrentWeekRange() {
     const today = new Date()
-    const dayOfWeek = today.getDay() // 0 = sunday
+    const dayOfWeek = today.getDay()
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
 
     const monday = new Date(today)
@@ -149,6 +149,7 @@ export class ReadingSessionsStatsService {
     return {
       start: formatDate(monday),
       end: formatDate(sunday),
+      startDate: monday,
     }
   }
 
@@ -160,7 +161,7 @@ export class ReadingSessionsStatsService {
     const [year, monthNumber] = month.split('-').map(Number)
 
     const start = new Date(year, monthNumber - 1, 1)
-    const end = new Date(year, monthNumber, 0) // day 0 of next month = last day of this month
+    const end = new Date(year, monthNumber, 0)
 
     return {
       start: formatDate(start),
@@ -168,20 +169,20 @@ export class ReadingSessionsStatsService {
     }
   }
 
-  private groupPagesByDay(sessions: ReadingSession[], weekStart: string) {
+  private groupPagesByDay(sessions: ReadingSession[], weekStart: Date) {
     const pagesByDate = new Map<string, number>()
 
     for (const session of sessions) {
       const pages = session.toPage - session.fromPage + 1
       const current = pagesByDate.get(session.readAt) ?? 0
+
       pagesByDate.set(session.readAt, current + pages)
     }
 
-    const start = new Date(weekStart)
-
     return this.weekDayLabels.map((day, index) => {
-      const date = new Date(start)
-      date.setDate(start.getDate() + index)
+      const date = new Date(weekStart)
+      date.setDate(weekStart.getDate() + index)
+
       const dateKey = formatDate(date)
 
       return { day, pages: pagesByDate.get(dateKey) ?? 0 }
