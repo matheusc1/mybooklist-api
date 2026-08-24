@@ -74,12 +74,8 @@ export class BooksService {
   }
 
   async countCompleted(userId: string, year: number) {
-    const startOfYear = new Date(Date.UTC(year, 0, 1))
-      .toISOString()
-      .split('T')[0]
-    const endOfYear = new Date(Date.UTC(year + 1, 0, 1))
-      .toISOString()
-      .split('T')[0]
+    const startOfYear = formatDate(new Date(year, 0, 1))
+    const endOfYear = formatDate(new Date(year + 1, 0, 1))
 
     return this.db.$count(
       books,
