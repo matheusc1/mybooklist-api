@@ -1,15 +1,11 @@
-import { DATABASE_CONNECTION } from '@/database/database-connection'
-import type { Database } from '@/database/database.types'
-import { books } from '@/database/schema/books.schema'
-import { readingSessions } from '@/database/schema/reading-sessions.schema'
-import { BadRequestException, Inject, Injectable } from '@nestjs/common'
-import { and, desc, eq, gte, lte } from 'drizzle-orm'
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
 import { formatDate } from '@/common/format-date'
 import type { ReadingSession } from './reading-sessions.types'
 
 @Injectable()
 export class ReadingSessionsStatsService {
-  constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
+  constructor(private readonly repository: ReadingSessionsStatsRepository) {}
 
   private readonly weekDayLabels = [
     'Mon',
@@ -65,28 +61,7 @@ export class ReadingSessionsStatsService {
   async monthlyActivity(userId: string, month: string) {
     const { start, end } = this.getMonthRange(month)
 
-    const rows = await this.db
-      .select({
-        id: readingSessions.id,
-        date: readingSessions.readAt,
-        bookId: readingSessions.bookId,
-        title: books.title,
-        author: books.author,
-        coverUrl: books.coverUrl,
-        fromPage: readingSessions.fromPage,
-        toPage: readingSessions.toPage,
-        duration: readingSessions.durationSeconds,
-      })
-      .from(readingSessions)
-      .innerJoin(books, eq(readingSessions.bookId, books.id))
-      .where(
-        and(
-          eq(books.userId, userId),
-          gte(readingSessions.readAt, start),
-          lte(readingSessions.readAt, end),
-        ),
-      )
-      .orderBy(readingSessions.readAt, readingSessions.createdAt)
+    const rows = await this.repository.findMonthlyActivity(userId, start, end)
 
     const calendarMap = new Map<string, typeof rows>()
 
@@ -111,18 +86,7 @@ export class ReadingSessionsStatsService {
     start: string,
     end: string,
   ) {
-    return this.db
-      .select({ readingSession: readingSessions })
-      .from(readingSessions)
-      .innerJoin(books, eq(readingSessions.bookId, books.id))
-      .where(
-        and(
-          eq(books.userId, userId),
-          gte(readingSessions.readAt, start),
-          lte(readingSessions.readAt, end),
-        ),
-      )
-      .then((rows) => rows.map((r) => r.readingSession))
+    return this.repository.findInRange(userId, start, end)
   }
 
   private sumPages(sessions: ReadingSession[]) {
@@ -190,16 +154,11 @@ export class ReadingSessionsStatsService {
   }
 
   private async calculateStreak(userId: string) {
-    const sessions = await this.db
-      .selectDistinct({ readAt: readingSessions.readAt })
-      .from(readingSessions)
-      .innerJoin(books, eq(readingSessions.bookId, books.id))
-      .where(eq(books.userId, userId))
-      .orderBy(desc(readingSessions.readAt))
+    const sessions = await this.repository.findDistinctReadDates(userId)
 
     if (sessions.length === 0) return 0
 
-    const readDates = new Set(sessions.map((s) => s.readAt))
+    const readDates = new Set(sessions)
     const today = formatDate(new Date())
     const cursor = new Date()
 

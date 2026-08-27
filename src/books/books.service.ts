@@ -1,179 +1,56 @@
-import { DATABASE_CONNECTION } from '@/database/database-connection'
-import { books } from '@/database/schema/books.schema'
-import type { Database, Transaction } from '@/database/database.types'
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { and, eq, gte, lt } from 'drizzle-orm'
-import type { Book, NewBook } from './books.types'
-import { formatDate } from '@/common/format-date'
+import { BooksRepository } from './books.repository'
+import type { NewBook } from './books.types'
 
 @Injectable()
 export class BooksService {
-  constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {}
-
-  async findAll(userId: string) {
-    return this.db.query.books.findMany({
-      where: { userId },
-    })
+  constructor(
+    private readonly repository: BooksRepository,
+  ) {}
+  findAll(userId: string) {
+    return this.repository.findAll(userId)
   }
-
   async findOne(id: string, userId: string) {
-    const book = await this.db.query.books.findFirst({
-      where: { id, userId },
-    })
-
-    if (!book) {
-      throw new NotFoundException(`Book with id ${id} not found`)
-    }
-
+    const book = await this.repository.findOne(id, userId)
+    if (!book) throw new NotFoundException(`Book with id ${id} not found`)
     return book
   }
-
   async create(book: NewBook) {
-    const currentPage = book.currentPage ?? 0
-
-    if (currentPage > book.totalPages) {
+    if ((book.currentPage ?? 0) > book.totalPages)
       throw new BadRequestException(
         'Current page cannot be greater than total pages.',
       )
-    }
-
-    const [created] = await this.db.insert(books).values(book).returning()
-    return created
+    return this.repository.create(book)
   }
-
   async update(id: string, userId: string, book: Partial<NewBook>) {
     const existing = await this.findOne(id, userId)
-
-    const currentPage = book.currentPage ?? existing.currentPage ?? 0
-    const totalPages = book.totalPages ?? existing.totalPages
-
-    if (currentPage > totalPages) {
+    if (
+      (book.currentPage ?? existing.currentPage ?? 0) >
+      (book.totalPages ?? existing.totalPages)
+    )
       throw new BadRequestException(
         'Current page cannot be greater than total pages.',
       )
-    }
-
-    const [updated] = await this.db
-      .update(books)
-      .set(book)
-      .where(eq(books.id, id))
-      .returning()
-
-    return updated
+    return this.repository.update(id, book)
   }
-
   async delete(id: string, userId: string) {
     await this.findOne(id, userId)
-
-    await this.db.delete(books).where(eq(books.id, id))
+    await this.repository.delete(id)
   }
-
-  async countCompleted(userId: string, year: number) {
-    const startOfYear = formatDate(new Date(year, 0, 1))
-    const endOfYear = formatDate(new Date(year + 1, 0, 1))
-
-    return this.db.$count(
-      books,
-      and(
-        eq(books.userId, userId),
-        eq(books.status, 'completed'),
-        gte(books.completedAt, startOfYear),
-        lt(books.completedAt, endOfYear),
-      ),
-    )
+  countCompleted(userId: string, year: number) {
+    return this.repository.countCompleted(userId, year)
   }
-
-  async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
-    const book = await tx.query.books.findFirst({ where: { id: bookId } })
-
-    if (!book) {
-      throw new NotFoundException(`Book with id ${bookId} not found`)
-    }
-
-    return this.updateProgress(tx, book, currentPage)
+  findCurrentlyReading(userId: string) {
+    return this.repository.findCurrentlyReading(userId)
   }
-
-  private async updateProgress(
-    tx: Transaction,
-    book: Book,
-    currentPage: number,
-  ) {
-    const isCompleted = currentPage >= book.totalPages
-
-    const status = isCompleted
-      ? 'completed'
-      : currentPage > 0
-        ? 'reading'
-        : book.status
-
-    const startedAt =
-      (status === 'reading' || isCompleted) && !book.startedAt
-        ? formatDate(new Date())
-        : book.startedAt
-
-    const completedAt = isCompleted
-      ? (book.completedAt ?? formatDate(new Date()))
-      : null
-
-    const [updated] = await tx
-      .update(books)
-      .set({ currentPage, status, startedAt, completedAt })
-      .where(eq(books.id, book.id))
-      .returning()
-
-    return updated
+  findRecentActivity(userId: string, quantity: number, excludeId?: string) {
+    return this.repository.findRecentActivity(userId, quantity, excludeId)
   }
-
-  async resetProgress(tx: Transaction, bookId: string) {
-    const book = await tx.query.books.findFirst({ where: { id: bookId } })
-
-    if (!book) {
-      throw new NotFoundException(`Book with id ${bookId} not found`)
-    }
-
-    const [updated] = await tx
-      .update(books)
-      .set({
-        currentPage: 0,
-        status: 'planned',
-        startedAt: null,
-        completedAt: null,
-      })
-      .where(eq(books.id, book.id))
-      .returning()
-
-    return updated
-  }
-
-  async findCurrentlyReading(userId: string) {
-    return this.db.query.books.findFirst({
-      where: { userId, status: 'reading' },
-      orderBy: { updatedAt: 'desc' },
-    })
-  }
-
-  async findRecentActivity(
-    userId: string,
-    quantity: number,
-    excludeId?: string,
-  ) {
-    return this.db.query.books.findMany({
-      where: excludeId ? { userId, id: { ne: excludeId } } : { userId },
-      orderBy: { updatedAt: 'desc' },
-      limit: quantity,
-    })
-  }
-
-  async findLastCompleted(userId: string, quantity: number) {
-    return this.db.query.books.findMany({
-      where: { userId, status: 'completed' },
-      orderBy: { completedAt: 'desc' },
-      limit: quantity,
-    })
+  findLastCompleted(userId: string, quantity: number) {
+    return this.repository.findLastCompleted(userId, quantity)
   }
 }
