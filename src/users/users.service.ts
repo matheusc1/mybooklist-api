@@ -4,9 +4,7 @@ import { UsersRepository } from './users.repository'
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly repository: UsersRepository,
-  ) {}
+  constructor(private readonly repository: UsersRepository) {}
 
   async findById(id: string): Promise<User | undefined> {
     return this.repository.findById(id)

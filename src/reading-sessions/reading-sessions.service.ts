@@ -14,15 +14,18 @@ export class ReadingSessionsService {
     private readonly repository: ReadingSessionsRepository,
     private readonly booksService: BooksService,
   ) {}
+
   findAll(userId: string) {
     return this.repository.findAll(userId)
   }
+
   async findOne(id: string, userId: string) {
     const session = await this.repository.findOne(id, userId)
     if (!session)
       throw new NotFoundException(`Reading Session with id ${id} not found`)
     return session
   }
+
   async create(
     user: User,
     session: Omit<NewReadingSession, 'durationSeconds'>,
@@ -37,6 +40,7 @@ export class ReadingSessionsService {
       ),
     )
   }
+
   async update(
     id: string,
     user: User,
@@ -51,10 +55,12 @@ export class ReadingSessionsService {
       this.calculateDuration(fromPage, toPage, user.readingSpeed),
     )
   }
+
   async delete(id: string, userId: string, resetToPlanned = false) {
     await this.findOne(id, userId)
     return this.repository.delete(id, resetToPlanned)
   }
+
   private calculateDuration(
     fromPage: number,
     toPage: number,

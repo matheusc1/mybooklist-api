@@ -19,6 +19,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
   ) {
     super()
   }
+
   async findAll(userId: string) {
     return this.db
       .select({ readingSession: readingSessions })
@@ -27,6 +28,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
       .where(eq(books.userId, userId))
       .then((rows) => rows.map((r) => r.readingSession))
   }
+
   async findOne(id: string, userId: string) {
     const [row] = await this.db
       .select({ readingSession: readingSessions })
@@ -35,6 +37,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
       .where(and(eq(readingSessions.id, id), eq(books.userId, userId)))
     return row?.readingSession
   }
+
   private async latest(tx: Transaction, bookId: string) {
     const [row] = await tx.query.readingSessions.findMany({
       where: { bookId },
@@ -43,6 +46,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
     })
     return row
   }
+
   async create(
     session: Omit<NewReadingSession, 'durationSeconds'>,
     durationSeconds: number,
@@ -58,6 +62,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
       return created
     })
   }
+
   async update(
     id: string,
     data: Partial<Pick<NewReadingSession, 'fromPage' | 'toPage' | 'readAt'>>,
@@ -81,6 +86,7 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
       return updated
     })
   }
+
   async delete(id: string, resetToPlanned: boolean) {
     return this.db.transaction(async (tx) => {
       const [existing] = await tx.query.readingSessions.findMany({

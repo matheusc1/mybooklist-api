@@ -11,12 +11,15 @@ export class DrizzleUsersRepository extends UsersRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {
     super()
   }
+
   findById(id: string) {
     return this.db.query.users.findFirst({ where: { id } })
   }
+
   findByProvider(provider: 'google' | 'github', providerId: string) {
     return this.db.query.users.findFirst({ where: { provider, providerId } })
   }
+
   async create(data: NewUser): Promise<User> {
     const [user] = await this.db
       .insert(users)
@@ -28,6 +31,7 @@ export class DrizzleUsersRepository extends UsersRepository {
     if (!existing) throw new Error('Failed to create or retrieve user')
     return existing
   }
+
   async update(id: string, data: Partial<NewUser>): Promise<User> {
     const [updated] = await this.db
       .update(users)

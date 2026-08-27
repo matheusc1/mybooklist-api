@@ -18,10 +18,12 @@ export abstract class ReadingSessionsStatsRepository {
     start: string,
     end: string,
   ): Promise<ReadingSession[]>
+
   abstract findMonthlyActivity(
     userId: string,
     start: string,
     end: string,
   ): Promise<MonthlyActivityRow[]>
+
   abstract findDistinctReadDates(userId: string): Promise<string[]>
 }

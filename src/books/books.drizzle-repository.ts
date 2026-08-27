@@ -12,16 +12,20 @@ export class DrizzleBooksRepository extends BooksRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {
     super()
   }
+
   findAll(userId: string) {
     return this.db.query.books.findMany({ where: { userId } })
   }
+
   findOne(id: string, userId: string) {
     return this.db.query.books.findFirst({ where: { id, userId } })
   }
+
   async create(book: NewBook) {
     const [created] = await this.db.insert(books).values(book).returning()
     return created
   }
+
   async update(id: string, book: Partial<NewBook>) {
     const [updated] = await this.db
       .update(books)
@@ -30,9 +34,11 @@ export class DrizzleBooksRepository extends BooksRepository {
       .returning()
     return updated
   }
+
   async delete(id: string) {
     await this.db.delete(books).where(eq(books.id, id))
   }
+
   countCompleted(userId: string, year: number) {
     return this.db.$count(
       books,
@@ -44,12 +50,14 @@ export class DrizzleBooksRepository extends BooksRepository {
       ),
     )
   }
+
   findCurrentlyReading(userId: string) {
     return this.db.query.books.findFirst({
       where: { userId, status: 'reading' },
       orderBy: { updatedAt: 'desc' },
     })
   }
+
   findRecentActivity(userId: string, quantity: number, excludeId?: string) {
     return this.db.query.books.findMany({
       where: excludeId ? { userId, id: { ne: excludeId } } : { userId },
@@ -57,6 +65,7 @@ export class DrizzleBooksRepository extends BooksRepository {
       limit: quantity,
     })
   }
+
   findLastCompleted(userId: string, quantity: number) {
     return this.db.query.books.findMany({
       where: { userId, status: 'completed' },
@@ -64,10 +73,10 @@ export class DrizzleBooksRepository extends BooksRepository {
       limit: quantity,
     })
   }
+
   async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
     const book = await tx.query.books.findFirst({ where: { id: bookId } })
-    if (!book)
-      throw new NotFoundException(`Book with id ${bookId} not found`)
+    if (!book) throw new NotFoundException(`Book with id ${bookId} not found`)
     const completed = currentPage >= book.totalPages
     const status = completed
       ? 'completed'
@@ -88,10 +97,10 @@ export class DrizzleBooksRepository extends BooksRepository {
       .returning()
     return updated
   }
+
   async resetProgress(tx: Transaction, bookId: string) {
     const book = await tx.query.books.findFirst({ where: { id: bookId } })
-    if (!book)
-      throw new NotFoundException(`Book with id ${bookId} not found`)
+    if (!book) throw new NotFoundException(`Book with id ${bookId} not found`)
 
     const [updated] = await tx
       .update(books)

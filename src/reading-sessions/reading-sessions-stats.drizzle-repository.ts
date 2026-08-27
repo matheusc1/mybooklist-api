@@ -4,18 +4,16 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import { readingSessions } from '@/database/schema/reading-sessions.schema'
-import {
-  ReadingSessionsStatsRepository,
-} from './reading-sessions-stats.repository'
-import type {
-  MonthlyActivityRow,
-} from './reading-sessions-stats.repository'
+import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
+import type { MonthlyActivityRow } from './reading-sessions-stats.repository'
+
 @Injectable()
 export class DrizzleReadingSessionsStatsRepository extends ReadingSessionsStatsRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {
     super()
   }
-  findInRange(userId: string, start: string, end: string) {
+
+  async findInRange(userId: string, start: string, end: string) {
     return this.db
       .select({ readingSession: readingSessions })
       .from(readingSessions)
@@ -29,6 +27,7 @@ export class DrizzleReadingSessionsStatsRepository extends ReadingSessionsStatsR
       )
       .then((rows) => rows.map((r) => r.readingSession))
   }
+
   findMonthlyActivity(
     userId: string,
     start: string,
@@ -57,7 +56,8 @@ export class DrizzleReadingSessionsStatsRepository extends ReadingSessionsStatsR
       )
       .orderBy(readingSessions.readAt, readingSessions.createdAt)
   }
-  findDistinctReadDates(userId: string) {
+
+  async findDistinctReadDates(userId: string) {
     return this.db
       .selectDistinct({ readAt: readingSessions.readAt })
       .from(readingSessions)
