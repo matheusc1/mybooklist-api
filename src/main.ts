@@ -27,6 +27,12 @@ async function bootstrap() {
     .setTitle('MyBookList API')
     .setDescription('Personal reading tracker API')
     .setVersion('1.0')
+    .addCookieAuth('access_token', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'access_token',
+      description: 'JWT access token stored in an httpOnly cookie.',
+    })
     .addTag('books', 'Book CRUD and reading progress')
     .addTag('reading-sessions', 'Reading session tracking')
     .addTag('goals', 'Annual reading goals')

@@ -17,6 +17,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiFoundResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { AuthService } from './auth.service'
@@ -96,6 +97,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Get the currently authenticated user' })
+  @ApiCookieAuth('access_token')
   @ApiOkResponse({ type: PublicUserDto })
   @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
   @Get('me')

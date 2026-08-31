@@ -1,27 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger'
 
 export class ReadingSessionDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique reading session identifier.' })
   id: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Book associated with the session.' })
   bookId: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Starting page of the reading interval.', minimum: 0, example: 120 })
   fromPage: number
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Ending page of the reading interval.', minimum: 0, example: 150 })
   toPage: number
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Estimated duration, in seconds, based on the user reading speed at session creation.', example: 5400 })
   durationSeconds: number
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Date the reading happened. Format: YYYY-MM-DD.', format: 'date', example: '2026-08-30' })
   readAt: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'When the record was created.', type: String, format: 'date-time' })
   createdAt: Date
 
-  @ApiProperty()
+  @ApiProperty({ description: 'When the record was last updated.', type: String, format: 'date-time' })
   updatedAt: Date
 }

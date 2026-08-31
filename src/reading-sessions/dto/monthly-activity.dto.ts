@@ -1,35 +1,42 @@
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CalendarSessionDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique reading session identifier.' })
   id: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Associated book identifier.' })
   bookId: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Book title at the time of the session.' })
   title: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Book author at the time of the session.' })
   author: string
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Cover image URL, if any, for the session book.',
+    nullable: true,
+  })
   coverUrl: string | null
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Starting page of the session.', minimum: 0, example: 120 })
   fromPage: number
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Ending page of the session.', minimum: 0, example: 150 })
   toPage: number
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Session length in minutes, rounded to the nearest minute.', example: 45 })
   duration: number
 }
 
 export class CalendarDayDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Calendar date in YYYY-MM-DD format.', example: '2026-08-30' })
   date: string
 
-  @ApiProperty({ type: CalendarSessionDto, isArray: true })
+  @ApiProperty({
+    type: CalendarSessionDto,
+    isArray: true,
+    description: 'All reading sessions recorded for this day.',
+  })
   sessions: CalendarSessionDto[]
 }

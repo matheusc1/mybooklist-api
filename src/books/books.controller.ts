@@ -18,6 +18,7 @@ import {
   ApiUnauthorizedResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { BooksService } from './books.service'
 import { CreateBookDto } from './dto/create-book.dto'
@@ -27,6 +28,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator'
 import type { User } from '@/users/users.types'
 
 @ApiTags('books')
+@ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
 @Controller('books')
 export class BooksController {

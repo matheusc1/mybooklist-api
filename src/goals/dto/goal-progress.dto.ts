@@ -1,12 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger'
 
 export class GoalProgressDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Reading goal year.', example: 2026 })
   year: number
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Reading target for the year. Null when no goal has been configured.',
+    nullable: true,
+    example: 50,
+  })
   target: number | null
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Books completed in the current year.', example: 12 })
   current: number
 }

@@ -5,6 +5,7 @@ import {
   ApiUnauthorizedResponse,
   ApiBadRequestResponse,
   ApiOkResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { GoalsService } from './goals.service'
 import { CurrentUser } from '@/auth/decorators/current-user.decorator'
@@ -13,6 +14,7 @@ import { UpsertGoalDto } from './dto/upsert-goal.dto'
 import { GoalProgressDto } from './dto/goal-progress.dto'
 
 @ApiTags('goals')
+@ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
 @Controller('goals')
 export class GoalsController {
