@@ -2,45 +2,87 @@ import { ApiProperty } from '@nestjs/swagger'
 import { statusEnum } from '@/database/schema/books.schema'
 
 export class BookDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique book identifier.' })
   id: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Owner user identifier.' })
   userId: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Book title.' })
   title: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Book author.' })
   author: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Reading category or genre.' })
   genre: string
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Cover image URL, or null if no cover was provided.',
+    nullable: true,
+    example: 'https://example.com/covers/book.jpg',
+  })
   coverUrl: string | null
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Total number of pages in the book.',
+    minimum: 1,
+    example: 320,
+  })
   totalPages: number
 
-  @ApiProperty({ nullable: true })
-  currentPage: number | null
+  @ApiProperty({
+    description:
+      'Current page progress. Practically defaults to 0 when the book is created without an explicit value.',
+    default: 0,
+    minimum: 0,
+    example: 128,
+  })
+  currentPage: number
 
-  @ApiProperty({ enum: statusEnum.enumValues })
+  @ApiProperty({
+    enum: statusEnum.enumValues,
+    description: 'Current reading status for the book.',
+    example: 'reading',
+  })
   status: (typeof statusEnum.enumValues)[number]
 
-  @ApiProperty({ nullable: true, minimum: 0, maximum: 5 })
+  @ApiProperty({
+    description: 'Optional rating from 0 to 5.',
+    nullable: true,
+    minimum: 0,
+    maximum: 5,
+    example: 4,
+  })
   rating: number | null
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Date the reading started, if known.',
+    nullable: true,
+    format: 'date',
+    example: '2026-08-01',
+  })
   startedAt: string | null
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Date the book was completed, if applicable.',
+    nullable: true,
+    format: 'date',
+    example: '2026-08-30',
+  })
   completedAt: string | null
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'When the record was created.',
+    type: String,
+    format: 'date-time',
+  })
   createdAt: Date
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'When the record was last updated.',
+    type: String,
+    format: 'date-time',
+  })
   updatedAt: Date
 }

@@ -10,10 +10,12 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
   ApiBadRequestResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { PublicUserDto } from './dto/public-user.dto'
 
 @ApiTags('users')
+@ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
 @Controller('users')
 export class UsersController {

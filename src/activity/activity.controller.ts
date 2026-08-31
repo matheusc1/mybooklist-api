@@ -5,6 +5,7 @@ import {
   ApiOkResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { ActivityService } from './activity.service'
 import { CurrentUser } from '@/auth/decorators/current-user.decorator'
@@ -13,6 +14,7 @@ import { GetActivityDto } from './dto/get-activity.dto'
 import { ActivityDto } from './dto/activity.dto'
 
 @ApiTags('activity')
+@ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
 @Controller('activity')
 export class ActivityController {

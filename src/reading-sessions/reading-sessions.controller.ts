@@ -19,6 +19,7 @@ import {
   ApiUnauthorizedResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
+  ApiCookieAuth,
 } from '@nestjs/swagger'
 import { ReadingSessionsService } from './reading-sessions.service'
 import { CreateReadingSessionDto } from './dto/create-reading-session.dto'
@@ -29,6 +30,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator'
 import type { User } from '@/users/users.types'
 
 @ApiTags('reading-sessions')
+@ApiCookieAuth('access_token')
 @ApiUnauthorizedResponse({ description: 'User not authenticated.' })
 @Controller('reading-sessions')
 export class ReadingSessionsController {

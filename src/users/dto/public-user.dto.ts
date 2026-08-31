@@ -1,18 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger'
 
 export class PublicUserDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique user identifier.' })
   id: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Primary email address used for the account.' })
   email: string
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Display name from the OAuth provider profile.' })
   name: string
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({
+    description: 'Profile avatar URL, if available.',
+    nullable: true,
+    example: 'https://example.com/avatar.png',
+  })
   avatarUrl: string | null
 
-  @ApiProperty({ nullable: true, example: 200 })
+  @ApiProperty({
+    description: 'Reading speed in seconds per page. Null until configured.',
+    nullable: true,
+    example: 200,
+  })
   readingSpeed: number | null
 }
