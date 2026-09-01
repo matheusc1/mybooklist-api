@@ -5,12 +5,17 @@ export class GoalProgressDto {
   year: number
 
   @ApiProperty({
-    description: 'Reading target for the year. Null when no goal has been configured.',
+    description:
+      'Reading target for the year. Null when no goal has been configured.',
+    type: Number,
     nullable: true,
     example: 50,
   })
   target: number | null
 
-  @ApiProperty({ description: 'Books completed in the current year.', example: 12 })
+  @ApiProperty({
+    description: 'Books completed in the current year.',
+    example: 12,
+  })
   current: number
 }

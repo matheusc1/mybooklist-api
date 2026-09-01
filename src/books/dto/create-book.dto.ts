@@ -27,6 +27,7 @@ export class CreateBookDto {
 
   @ApiPropertyOptional({
     description: 'Optional cover image URL. Null when no cover is set.',
+    type: String,
     nullable: true,
   })
   @IsOptional()

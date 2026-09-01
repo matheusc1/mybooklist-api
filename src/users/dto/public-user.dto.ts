@@ -12,6 +12,7 @@ export class PublicUserDto {
 
   @ApiProperty({
     description: 'Profile avatar URL, if available.',
+    type: String,
     nullable: true,
     example: 'https://example.com/avatar.png',
   })
@@ -19,6 +20,7 @@ export class PublicUserDto {
 
   @ApiProperty({
     description: 'Reading speed in seconds per page. Null until configured.',
+    type: Number,
     nullable: true,
     example: 200,
   })

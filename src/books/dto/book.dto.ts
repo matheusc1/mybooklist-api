@@ -19,6 +19,7 @@ export class BookDto {
 
   @ApiProperty({
     description: 'Cover image URL, or null if no cover was provided.',
+    type: String,
     nullable: true,
     example: 'https://example.com/covers/book.jpg',
   })
@@ -49,6 +50,7 @@ export class BookDto {
 
   @ApiProperty({
     description: 'Optional rating from 0 to 5.',
+    type: Number,
     nullable: true,
     minimum: 0,
     maximum: 5,
@@ -58,6 +60,7 @@ export class BookDto {
 
   @ApiProperty({
     description: 'Date the reading started, if known.',
+    type: String,
     nullable: true,
     format: 'date',
     example: '2026-08-01',
@@ -66,6 +69,7 @@ export class BookDto {
 
   @ApiProperty({
     description: 'Date the book was completed, if applicable.',
+    type: String,
     nullable: true,
     format: 'date',
     example: '2026-08-30',
