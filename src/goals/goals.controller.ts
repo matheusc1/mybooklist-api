@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common'
 import {
   ApiTags,
   ApiOperation,
@@ -30,6 +37,7 @@ export class GoalsController {
   @ApiOperation({ summary: 'Create or update the current year reading goal' })
   @ApiOkResponse({ type: GoalProgressDto })
   @ApiBadRequestResponse({ description: 'Invalid target.' })
+  @HttpCode(HttpStatus.OK)
   @Post()
   async upsert(@Body() dto: UpsertGoalDto, @CurrentUser() user: User) {
     return this.goalsService.upsert(user.id, dto.target)
