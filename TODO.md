@@ -181,4 +181,4 @@ Ordem: documentação → inversão de dependência → testes.
 1. [x] Documentação da API (decorators `@nestjs/swagger`, UI via Scalar)
 2. [x] Inversão de dependência: extrair repositories entre os services e
        o Drizzle
-3. [ ] Testes unitários
+3. [x] Testes unitários e E2E
