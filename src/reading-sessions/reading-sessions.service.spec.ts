@@ -23,6 +23,7 @@ describe('ReadingSessionsService', () => {
     createdAt: new Date('2026-09-01T10:00:00.000Z'),
     updatedAt: new Date('2026-09-01T10:00:00.000Z'),
   }
+  const book = { totalPages: 20 } as never
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -63,7 +64,7 @@ describe('ReadingSessionsService', () => {
   })
 
   it('verifies book ownership and calculates duration when creating', async () => {
-    booksService.findOne.mockResolvedValue({} as never)
+    booksService.findOne.mockResolvedValue(book)
     repository.create.mockResolvedValue(session)
     const data = { bookId: 'book-123', fromPage: 10, toPage: 19 }
 
@@ -73,7 +74,7 @@ describe('ReadingSessionsService', () => {
   })
 
   it('uses zero duration when the user has no reading speed', async () => {
-    booksService.findOne.mockResolvedValue({} as never)
+    booksService.findOne.mockResolvedValue(book)
     repository.create.mockResolvedValue(session)
 
     await service.create(
@@ -88,7 +89,7 @@ describe('ReadingSessionsService', () => {
   })
 
   it('rejects a reversed page range without creating a session', async () => {
-    booksService.findOne.mockResolvedValue({} as never)
+    booksService.findOne.mockResolvedValue(book)
 
     await expect(
       service.create(user, { bookId: 'book-123', fromPage: 20, toPage: 19 }),
@@ -96,16 +97,47 @@ describe('ReadingSessionsService', () => {
     expect(repository.create).not.toHaveBeenCalled()
   })
 
+  it('rejects a toPage greater than the book totalPages when creating', async () => {
+    booksService.findOne.mockResolvedValue(book)
+
+    await expect(
+      service.create(user, { bookId: 'book-123', fromPage: 10, toPage: 21 }),
+    ).rejects.toThrow(BadRequestException)
+    expect(repository.create).not.toHaveBeenCalled()
+  })
+
+  it('accepts a toPage equal to the book totalPages when creating', async () => {
+    booksService.findOne.mockResolvedValue(book)
+    repository.create.mockResolvedValue(session)
+
+    await expect(
+      service.create(user, { bookId: 'book-123', fromPage: 10, toPage: 20 }),
+    ).resolves.toEqual(session)
+    expect(repository.create).toHaveBeenCalled()
+  })
+
+  it('accepts a toPage one below the book totalPages when creating', async () => {
+    booksService.findOne.mockResolvedValue(book)
+    repository.create.mockResolvedValue(session)
+
+    await expect(
+      service.create(user, { bookId: 'book-123', fromPage: 10, toPage: 19 }),
+    ).resolves.toEqual(session)
+    expect(repository.create).toHaveBeenCalled()
+  })
+
   it('uses existing pages for omitted fields when updating', async () => {
     repository.findOne.mockResolvedValue(session)
+    booksService.findOne.mockResolvedValue(book)
     repository.update.mockResolvedValue(session)
 
-    await service.update('session-123', user, { toPage: 24 })
+    await service.update('session-123', user, { toPage: 20 })
 
+    expect(booksService.findOne).toHaveBeenCalledWith(session.bookId, user.id)
     expect(repository.update).toHaveBeenCalledWith(
       'session-123',
-      { toPage: 24 },
-      900,
+      { toPage: 20 },
+      660,
     )
   })
 
@@ -116,6 +148,48 @@ describe('ReadingSessionsService', () => {
       service.update('session-123', user, { toPage: 20 }),
     ).rejects.toThrow(NotFoundException)
     expect(repository.update).not.toHaveBeenCalled()
+  })
+
+  it('rejects a reversed page range without updating a session', async () => {
+    repository.findOne.mockResolvedValue(session)
+    booksService.findOne.mockResolvedValue(book)
+
+    await expect(
+      service.update('session-123', user, { fromPage: 15, toPage: 10 }),
+    ).rejects.toThrow(BadRequestException)
+    expect(repository.update).not.toHaveBeenCalled()
+  })
+
+  it('rejects a toPage greater than the book totalPages when updating', async () => {
+    repository.findOne.mockResolvedValue(session)
+    booksService.findOne.mockResolvedValue(book)
+
+    await expect(
+      service.update('session-123', user, { toPage: 21 }),
+    ).rejects.toThrow(BadRequestException)
+    expect(repository.update).not.toHaveBeenCalled()
+  })
+
+  it('accepts a toPage equal to the book totalPages when updating', async () => {
+    repository.findOne.mockResolvedValue(session)
+    booksService.findOne.mockResolvedValue(book)
+    repository.update.mockResolvedValue(session)
+
+    await expect(
+      service.update('session-123', user, { toPage: 20 }),
+    ).resolves.toEqual(session)
+    expect(repository.update).toHaveBeenCalled()
+  })
+
+  it('accepts a toPage one below the book totalPages when updating', async () => {
+    repository.findOne.mockResolvedValue(session)
+    booksService.findOne.mockResolvedValue(book)
+    repository.update.mockResolvedValue(session)
+
+    await expect(
+      service.update('session-123', user, { toPage: 19 }),
+    ).resolves.toEqual(session)
+    expect(repository.update).toHaveBeenCalled()
   })
 
   it('deletes an owned session with the requested reset option', async () => {
