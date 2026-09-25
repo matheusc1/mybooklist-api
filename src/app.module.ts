@@ -10,6 +10,7 @@ import { GoalsModule } from './goals/goals.module'
 import { ReadingSessionsModule } from './reading-sessions/reading-sessions.module'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { ActivityModule } from './activity/activity.module'
+import { HealthModule } from './health/health.module'
 import { TestModule } from './test/test.module'
 
 @Module({
@@ -23,6 +24,7 @@ import { TestModule } from './test/test.module'
     ReadingSessionsModule,
     DashboardModule,
     ActivityModule,
+    HealthModule,
     ...(process.env.E2E_TEST_MODE === 'true' &&
     process.env.NODE_ENV !== 'production'
       ? [TestModule]
