@@ -17,4 +17,8 @@ export class AuthService {
   generateToken(user: { id: string }) {
     return this.jwtService.sign({ sub: user.id })
   }
+
+  generateExpiredToken(user: { id: string }) {
+    return this.jwtService.sign({ sub: user.id }, { expiresIn: '-1s' })
+  }
 }

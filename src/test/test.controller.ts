@@ -30,7 +30,9 @@ export class TestController {
       readingSpeed: body.readingSpeed === undefined ? 60 : body.readingSpeed,
     })
 
-    const token = this.authService.generateToken(user)
+    const token = body.expired
+      ? this.authService.generateExpiredToken(user)
+      : this.authService.generateToken(user)
 
     res.cookie('access_token', token, {
       httpOnly: true,

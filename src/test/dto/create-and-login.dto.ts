@@ -1,4 +1,10 @@
-import { IsInt, IsOptional, IsPositive, IsString } from 'class-validator'
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator'
 
 export class CreateAndLoginDto {
   @IsString()
@@ -8,4 +14,8 @@ export class CreateAndLoginDto {
   @IsPositive()
   @IsOptional()
   readingSpeed?: number | null
+
+  @IsBoolean()
+  @IsOptional()
+  expired?: boolean
 }
