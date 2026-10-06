@@ -36,6 +36,18 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Shared by cookie creation and removal: a cookie set with a `domain` is only
+  // cleared when clearCookie receives the same options. COOKIE_DOMAIN is unset
+  // in development and E2E, so the cookie stays host-only there.
+  private get cookieOptions() {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    }
+  }
+
   @ApiOperation({
     summary: 'Start Google OAuth login',
     description:
@@ -92,7 +104,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token')
+    res.clearCookie('access_token', this.cookieOptions)
     return { message: 'Logged out successfully' }
   }
 
@@ -117,9 +129,7 @@ export class AuthController {
     const token = this.authService.generateToken(user)
 
     res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...this.cookieOptions,
       maxAge: COOKIE_MAX_AGE,
     })
 

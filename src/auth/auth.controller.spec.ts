@@ -70,7 +70,10 @@ describe('AuthController', () => {
     expect(controller.logout(response as never)).toEqual({
       message: 'Logged out successfully',
     })
-    expect(response.clearCookie).toHaveBeenCalledWith('access_token')
+    expect(response.clearCookie).toHaveBeenCalledWith(
+      'access_token',
+      expect.objectContaining({ httpOnly: true, sameSite: 'lax' }),
+    )
   })
 
   it('authenticates an OAuth callback, sets a cookie, and redirects home', async () => {
