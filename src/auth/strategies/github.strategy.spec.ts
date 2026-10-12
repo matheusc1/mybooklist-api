@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test } from '@nestjs/testing'
 import { GithubStrategy } from './github.strategy'
+import { CookieStateStore } from '../oauth-state.store'
 
 describe('GithubStrategy', () => {
   let strategy: GithubStrategy
@@ -56,5 +57,11 @@ describe('GithubStrategy', () => {
       new UnauthorizedException('Github account has no public email.'),
       undefined,
     )
+  })
+
+  it('is configured with the cookie state store', () => {
+    const { _stateStore } = strategy as unknown as { _stateStore: unknown }
+
+    expect(_stateStore).toBeInstanceOf(CookieStateStore)
   })
 })

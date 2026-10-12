@@ -7,6 +7,7 @@ import {
   type VerifyCallback,
 } from 'passport-google-oauth20'
 import type { OAuthProfile } from '../auth.types'
+import { CookieStateStore } from '../oauth-state.store'
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -16,6 +17,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.getOrThrow<string>('GOOGLE_CLIENT_SECRET'),
       callbackURL: configService.getOrThrow<string>('GOOGLE_CALLBACK_URL'),
       scope: ['email', 'profile'],
+      store: new CookieStateStore('google'),
     })
   }
 

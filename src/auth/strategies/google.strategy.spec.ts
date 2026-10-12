@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Test } from '@nestjs/testing'
 import { GoogleStrategy } from './google.strategy'
+import { CookieStateStore } from '../oauth-state.store'
 
 describe('GoogleStrategy', () => {
   let strategy: GoogleStrategy
@@ -76,5 +77,11 @@ describe('GoogleStrategy', () => {
       null,
       expect.objectContaining({ avatarUrl: undefined }),
     )
+  })
+
+  it('is configured with the cookie state store', () => {
+    const { _stateStore } = strategy as unknown as { _stateStore: unknown }
+
+    expect(_stateStore).toBeInstanceOf(CookieStateStore)
   })
 })
