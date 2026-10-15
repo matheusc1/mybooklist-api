@@ -119,7 +119,7 @@ npm run test:e2e
 # instalar dependências
 npm install
 
-# variáveis de ambiente necessárias (.env) [ajustar valores reais]
+# variáveis de ambiente necessárias (.env)
 DATABASE_URL=
 TEST_DATABASE_URL=
 GOOGLE_CLIENT_ID=
@@ -131,6 +131,11 @@ GITHUB_CALLBACK_URL=
 JWT_SECRET=
 TEST_JWT_SECRET=
 FRONTEND_URL=
+
+# Variáveis opcionais
+
+# Usada em produção, quando front e API ficam em subdomínios diferentes (ex: `.meusite.com`) e o cookie JWT precisa ser compartilhado entre eles. Em desenvolvimento local, deixe sem definir.
+COOKIE_DOMAIN=
 
 # rodar em desenvolvimento
 npm run start:dev
