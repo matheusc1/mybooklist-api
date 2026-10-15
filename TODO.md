@@ -2,183 +2,72 @@
 
 ## Contexto
 
-Itens pendentes identificados durante a implementação do módulo `reading-sessions`,
-relacionados à sincronização entre `books` e `reading_sessions`.
+Itens pendentes da expansão das funcionalidades: histórico e detalhe do
+livro, e consulta de anos anteriores. Antes das features novas, a parte de
+stats sai do módulo `reading-sessions` para um módulo próprio.
 
-Para o raciocínio completo por trás de cada decisão (alternativas
-consideradas, motivos), ver `DECISIONS.md`. Aqui fica só o estado atual e o
-que falta.
-
----
-
-## Prioridade 1 — Progresso e status (books ↔ reading-sessions)
-
-### 1.1 Validar `currentPage <= totalPages` — concluído
-
-Validação no `BooksService` (create/update), usando o valor existente como
-fallback quando o campo não vem no payload parcial.
-
-**Commit:** `feat(books): validate currentPage does not exceed totalPages`
-
-### 1.2 Sincronizar `currentPage` a partir das reading sessions — concluído e testado
-
-Modelo: vence a sessão com o maior `readAt`, `updatedAt` como desempate.
-Detalhes em `DECISIONS.md` (ADR 002).
-
-Cenários testados:
-- [x] Editar `toPage` da sessão vencedora → `currentPage` acompanha.
-- [x] Editar `readAt` de uma sessão não-vencedora tornando-a mais recente →
-      ela assume a vitória.
-- [x] Editar `toPage` de uma sessão não-vencedora → não afeta `currentPage`.
-- [x] Apagar uma sessão não-vencedora → nada muda.
-- [x] Apagar a sessão vencedora, com outras restantes → recalcula para a
-      nova vencedora.
-- [x] Apagar a última sessão restante → `currentPage` mantém o valor atual.
-
-**Commits:**
-```
-feat(reading-sessions): add createdAt/updatedAt to reading_sessions schema
-feat(reading-sessions): allow readAt on create and update
-feat(books): add syncProgress method
-feat(reading-sessions): add findLatestByReadAt helper
-fix: use Transaction type instead of Database in tx params
-fix(database): switch from neon-http to neon-serverless driver
-feat(reading-sessions): sync currentPage on session create
-feat(reading-sessions): sync currentPage on session update
-feat(reading-sessions): sync currentPage on session delete
-```
-
-### 1.3 Atualizar `status`, `startedAt` e `completedAt` automaticamente — concluído e testado
-
-Enum de status real: `reading`, `planned`, `paused`, `completed`, `dropped`.
-
-Modelo: `syncProgress` → `updateProgress`, recalcula os três campos juntos a
-partir de `currentPage` vs `totalPages`. Regras completas e o bug encontrado
-durante os testes em `DECISIONS.md` (ADR 003).
-
-`markAsCompleted` (não usado em produção) removido, substituído por
-`updateProgress`.
-
-Cenários testados:
-- [x] `planned → reading`: progresso sem completar.
-- [x] `reading → completed`: sessão completa o livro.
-- [x] `planned → completed` direto, sem passar por `reading`.
-- [x] `completed → reading` (regressão): `completedAt` limpo, `startedAt`
-      preservado.
-- [x] Regressão a partir de `dropped`/`paused` manuais → `reading`.
-- [x] Datas manuais preenchidas não são sobrescritas por "hoje".
-- [x] Progresso `0` sem sessão nenhuma → permanece `planned`.
-- [x] Apagar sessões até sobrar uma `0 → 0` → mantém `reading`/`startedAt`
-      (comportamento deliberado, ver seção abaixo).
-
-**Commits:**
-```
-refactor(books): remove markAsCompleted, add updateProgress
-feat(books): use updateProgress inside syncProgress
-```
-
-#### `resetToPlanned` opcional no delete de sessão - concluído
-
-Quando o delete deixa um livro sem nenhuma sessão, o reset para
-`planned`/`null` não é automático, é uma opção explícita no `DeleteModal`.
-Raciocínio completo em `DECISIONS.md` (ADR 004).
-
-```ts
-async delete(id: string, userId: string, resetToPlanned = false) {
-  // ...
-  if (latest) {
-    await this.booksService.syncProgress(tx, existing.bookId, latest.toPage)
-  } else if (resetToPlanned) {
-    await this.booksService.resetProgress(tx, existing.bookId)
-  }
-}
-```
-
-- [x] `BooksService.resetProgress` (zera `currentPage`, `status = planned`,
-      `startedAt = null`, `completedAt = null`)
-- [x] Parâmetro `resetToPlanned` no `delete` do service
-- [x] Query param no controller (`DELETE /reading-sessions/:id?resetToPlanned=true`),
-      validado via DTO aplicado a `@Query()`. Não usar `@Body()` em DELETE
-
-**Commits:**
-```
-feat(books): add resetProgress method
-feat(reading-sessions): add optional resetToPlanned on session delete
-feat(reading-sessions): add resetToPlanned query param on session delete endpoint
-```
+Para o raciocínio por trás de decisões já tomadas, ver `DECISIONS.md`. Aqui
+fica só o estado atual e o que falta.
 
 ---
 
-## ~~Prioridade 2 — Validação isolada~~ — descartado
+## Prioridade 1 — Extração do módulo de stats
 
-### ~~2.1 Impedir sessões com intervalo de páginas sobreposto~~
+Refactor sem mudança de comportamento, em commit isolado, antes de qualquer
+feature nova. O módulo `reading-sessions` fica só com o CRUD de sessões e a
+sincronização com `books`.
 
-Não implementado, de propósito. Raciocínio completo em `DECISIONS.md`
-(ADR 005).
-
----
-
-## Infraestrutura — concluído
-
-- [x] Fechar o `Pool` no shutdown (`onModuleDestroy` no `DatabaseModule` +
-      `app.enableShutdownHooks()` no `main.ts`).
-
----
-
-## Prioridade 3 — Dashboard / Activity
-
-Dois módulos novos de consulta (read-only), cada um com service de
-orquestração que coordena os services de domínio, sem schema próprio.
-
-Ordem de implementação, da consulta mais simples para a mais complexa:
-
-1. [x] `findCurrentlyReading` (books) — último livro com `status: reading`,
-       ordenado por `updatedAt`
-2. [x] `findRecentActivity(quantity: number)` (books) — últimos livros
-       tocados (qualquer status), ordenado por `updatedAt`
-3. [x] `findLastCompleted(quantity: number)` (books) — filtro por
-       `status: completed` + ordenação
-4. [x] `weeklyStats` (reading-sessions) — semana fixa segunda–domingo;
-       retorna `pagesByDay` (7 dias, Mon–Sun, para o gráfico do front),
-       `totalPagesRead`, `totalReadingMinutes` (backend soma em segundos e
-       converte, front formata em hrs/min), `mostActiveDay` (por páginas,
-       reaproveitado nos dois cards do dashboard) e `daysStreak` (pode
-       passar de 7, olha o histórico completo do usuário, não só a semana
-       corrente)
-5. [x] `monthlyStats` (reading-sessions) — sessions, pages read, reading time, active days
-6. [x] `monthlyActivity` (reading-sessions) — retorna todas as sessões de
-       leitura de um mês específico (`YYYY-MM`), equivalente ao endpoint
-       `GET /activity?month=YYYY-MM`; agregação computada, sem tabela própria
-
-#### Dashboard
-
-7. [x] `DashboardModule` — controller + `DashboardService`, compõe
-       `findCurrentlyReading` + `findRecentActivity` + `findLastCompleted`
-       + `weeklyStats`
-
-#### Activity
-
-8. [x] `ActivityModule` — controller + `ActivityService`, usa
-       `monthlyStats` + `monthlyActivity`
-
-**Commits:**
-```
-feat(books): add findCurrentlyReading
-feat(books): add findRecentActivity and findLastCompleted
-feat(reading-sessions): add weeklyStats and extract stats service
-feat(reading-sessions): add monthlyStats
-feat(reading-sessions): add monthlyActivity
-feat(dashboard): add dashboard module
-feat(activity): add activity module
-```
+- [ ] Criar o módulo de stats e mover `reading-sessions-stats` (service,
+      repository, drizzle-repository) com os respectivos specs
+- [ ] Mover os DTOs de stats (`weekly-stats`, `monthly-stats`,
+      `monthly-activity`)
+- [ ] Ajustar os imports e módulos em `dashboard` e `activity`
+- [ ] Testes unitários e E2E passando antes e depois da extração
 
 ---
 
-## Prioridade 4 — Qualidade e documentação
+## Prioridade 2 — Histórico e detalhe do livro
 
-Ordem: documentação → inversão de dependência → testes.
+### 2.1 Campo de texto no livro
 
-1. [x] Documentação da API (decorators `@nestjs/swagger`, UI via Scalar)
-2. [x] Inversão de dependência: extrair repositories entre os services e
-       o Drizzle
-3. [x] Testes unitários e E2E
+Campo livre para anotação, resumo, análise, resenha, etc. Um único campo de
+texto puro.
+
+- [ ] Coluna `notes` (text, nullable) no schema de `books` + migration
+- [ ] Incluir em create/update (DTOs com `@ApiProperty`) e nos retornos de livro
+- [ ] Validação de tamanho máximo no DTO (limite a definir)
+- [ ] Testes unitários e E2E
+
+### 2.2 Reading-sessions e estatísticas de um livro
+
+Rota que retorna todas as sessões relacionadas a um livro, com validação de
+posse via `innerJoin` com `books`, como nas demais consultas. As estatísticas
+de leitura do livro são agregações computadas sob demanda, sem tabela
+própria.
+
+- [ ] Listar as sessões do livro em `reading-sessions` (repository, service e
+      controller)
+- [ ] Estatísticas do livro no módulo de stats: tempo total, quantidade de
+      sessões, quantidade de dias de leitura
+- [ ] Documentação no Swagger
+- [ ] Testes unitários e E2E (inclui ownership: usuário não acessa sessões de
+      livro de outro)
+
+---
+
+## Prioridade 3 — Anos anteriores
+
+### 3.1 Metas de anos anteriores
+
+- [ ] Permitir consultar a meta de um ano específico em `goals`
+- [ ] Testes unitários e E2E
+
+### 3.2 Estatísticas anuais
+
+Equivalente anual do `monthlyStats`, agregação computada sob demanda, sem
+tabela própria. Um livro conta no ano pelo `completedAt`.
+
+- [ ] `yearlyStats` no módulo de stats (sessões, páginas lidas, tempo de
+      leitura, dias ativos, livros concluídos)
+- [ ] Expor para consulta por ano
+- [ ] Testes unitários e E2E
