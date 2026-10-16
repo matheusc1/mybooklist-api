@@ -22,7 +22,7 @@ sincronização com `books`.
 - [x] Mover os DTOs de stats (`weekly-stats`, `monthly-stats`,
       `monthly-activity`)
 - [x] Ajustar os imports e módulos em `dashboard` e `activity`
-- [ ] Testes unitários e E2E passando antes e depois da extração
+- [x] Testes unitários e E2E passando antes e depois da extração
 
 ---
 
@@ -69,5 +69,7 @@ tabela própria. Um livro conta no ano pelo `completedAt`.
 
 - [ ] `yearlyStats` no módulo de stats (sessões, páginas lidas, tempo de
       leitura, dias ativos, livros concluídos)
+- [ ] `pagesByMonth` (12 meses, de janeiro a dezembro) no `yearlyStats`, para o
+      gráfico da página anual
 - [ ] Expor para consulta por ano
 - [ ] Testes unitários e E2E
