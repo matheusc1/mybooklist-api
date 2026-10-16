@@ -1,4 +1,4 @@
-import { ReadingSessionsStatsService } from '@/reading-sessions/reading-sessions-stats.service'
+import { ReadingSessionsStatsService } from '@/stats/reading-sessions-stats.service'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()

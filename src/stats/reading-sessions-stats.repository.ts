@@ -1,4 +1,4 @@
-import type { ReadingSession } from './reading-sessions.types'
+import type { ReadingSession } from '@/reading-sessions/reading-sessions.types'
 
 export interface MonthlyActivityRow {
   id: string

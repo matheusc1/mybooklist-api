@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
 import { formatDate } from '@/common/format-date'
-import type { ReadingSession } from './reading-sessions.types'
+import type { ReadingSession } from '@/reading-sessions/reading-sessions.types'
 
 @Injectable()
 export class ReadingSessionsStatsService {

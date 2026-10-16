@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common'
 import { ActivityController } from './activity.controller'
 import { ActivityService } from './activity.service'
-import { ReadingSessionsModule } from '@/reading-sessions/reading-sessions.module'
+import { StatsModule } from '@/stats/stats.module'
 
 @Module({
-  imports: [ReadingSessionsModule],
+  imports: [StatsModule],
   controllers: [ActivityController],
   providers: [ActivityService],
 })

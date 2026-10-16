@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { BookDto } from '@/books/dto/book.dto'
-import { WeeklyStatsDto } from '@/reading-sessions/dto/weekly-stats.dto'
+import { WeeklyStatsDto } from '@/stats/dto/weekly-stats.dto'
 
 export class DashboardDto {
   @ApiPropertyOptional({

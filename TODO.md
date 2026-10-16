@@ -17,11 +17,11 @@ Refactor sem mudança de comportamento, em commit isolado, antes de qualquer
 feature nova. O módulo `reading-sessions` fica só com o CRUD de sessões e a
 sincronização com `books`.
 
-- [ ] Criar o módulo de stats e mover `reading-sessions-stats` (service,
+- [x] Criar o módulo de stats e mover `reading-sessions-stats` (service,
       repository, drizzle-repository) com os respectivos specs
-- [ ] Mover os DTOs de stats (`weekly-stats`, `monthly-stats`,
+- [x] Mover os DTOs de stats (`weekly-stats`, `monthly-stats`,
       `monthly-activity`)
-- [ ] Ajustar os imports e módulos em `dashboard` e `activity`
+- [x] Ajustar os imports e módulos em `dashboard` e `activity`
 - [ ] Testes unitários e E2E passando antes e depois da extração
 
 ---

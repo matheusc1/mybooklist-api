@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ReadingSessionsStatsService } from '@/reading-sessions/reading-sessions-stats.service'
+import { ReadingSessionsStatsService } from '@/stats/reading-sessions-stats.service'
 import { ActivityService } from './activity.service'
 
 describe('ActivityService', () => {
