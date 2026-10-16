@@ -12,7 +12,7 @@ export interface MonthlyActivityRow {
   duration: number
 }
 
-export abstract class ReadingSessionsStatsRepository {
+export abstract class StatsRepository {
   abstract findInRange(
     userId: string,
     start: string,

@@ -4,11 +4,11 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import { readingSessions } from '@/database/schema/reading-sessions.schema'
-import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
-import type { MonthlyActivityRow } from './reading-sessions-stats.repository'
+import { StatsRepository } from './stats.repository'
+import type { MonthlyActivityRow } from './stats.repository'
 
 @Injectable()
-export class DrizzleReadingSessionsStatsRepository extends ReadingSessionsStatsRepository {
+export class DrizzleStatsRepository extends StatsRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: Database) {
     super()
   }

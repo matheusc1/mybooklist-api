@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ReadingSessionsStatsService } from '@/stats/reading-sessions-stats.service'
+import { StatsService } from '@/stats/stats.service'
 import { ActivityService } from './activity.service'
 
 describe('ActivityService', () => {
   let service: ActivityService
   let statsService: jest.Mocked<
-    Pick<ReadingSessionsStatsService, 'monthlyStats' | 'monthlyActivity'>
+    Pick<StatsService, 'monthlyStats' | 'monthlyActivity'>
   >
 
   const monthlyStats = {
@@ -37,7 +37,7 @@ describe('ActivityService', () => {
       providers: [
         ActivityService,
         {
-          provide: ReadingSessionsStatsService,
+          provide: StatsService,
           useValue: {
             monthlyStats: jest.fn(),
             monthlyActivity: jest.fn(),
@@ -47,7 +47,7 @@ describe('ActivityService', () => {
     }).compile()
 
     service = module.get<ActivityService>(ActivityService)
-    statsService = module.get(ReadingSessionsStatsService)
+    statsService = module.get(StatsService)
   })
 
   it('combines monthly statistics and calendar activity for a user and month', async () => {

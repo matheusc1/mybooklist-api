@@ -1,8 +1,8 @@
-import { DrizzleReadingSessionsStatsRepository } from './reading-sessions-stats.drizzle-repository'
+import { DrizzleStatsRepository } from './stats.drizzle-repository'
 import type { Database } from '@/database/database.types'
 
-describe('DrizzleReadingSessionsStatsRepository', () => {
-  let repository: DrizzleReadingSessionsStatsRepository
+describe('DrizzleStatsRepository', () => {
+  let repository: DrizzleStatsRepository
   let db: {
     select: jest.Mock
     selectDistinct: jest.Mock
@@ -10,9 +10,7 @@ describe('DrizzleReadingSessionsStatsRepository', () => {
 
   beforeEach(() => {
     db = { select: jest.fn(), selectDistinct: jest.fn() }
-    repository = new DrizzleReadingSessionsStatsRepository(
-      db as unknown as Database,
-    )
+    repository = new DrizzleStatsRepository(db as unknown as Database)
   })
 
   it('maps joined range rows to reading sessions', async () => {

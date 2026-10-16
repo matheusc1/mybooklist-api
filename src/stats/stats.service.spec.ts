@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { BadRequestException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
-import { ReadingSessionsStatsService } from './reading-sessions-stats.service'
+import { StatsRepository } from './stats.repository'
+import { StatsService } from './stats.service'
 
-describe('ReadingSessionsStatsService', () => {
-  let service: ReadingSessionsStatsService
-  let repository: jest.Mocked<ReadingSessionsStatsRepository>
+describe('StatsService', () => {
+  let service: StatsService
+  let repository: jest.Mocked<StatsRepository>
 
   const session = (
     readAt: string,
@@ -29,9 +29,9 @@ describe('ReadingSessionsStatsService', () => {
     jest.setSystemTime(new Date('2026-09-02T12:00:00.000Z'))
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ReadingSessionsStatsService,
+        StatsService,
         {
-          provide: ReadingSessionsStatsRepository,
+          provide: StatsRepository,
           useValue: {
             findInRange: jest.fn(),
             findMonthlyActivity: jest.fn(),
@@ -40,8 +40,8 @@ describe('ReadingSessionsStatsService', () => {
         },
       ],
     }).compile()
-    service = module.get(ReadingSessionsStatsService)
-    repository = module.get(ReadingSessionsStatsRepository)
+    service = module.get(StatsService)
+    repository = module.get(StatsRepository)
   })
 
   afterEach(() => jest.useRealTimers())

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BooksService } from '@/books/books.service'
-import { ReadingSessionsStatsService } from '@/stats/reading-sessions-stats.service'
+import { StatsService } from '@/stats/stats.service'
 import { DashboardService } from './dashboard.service'
 
 describe('DashboardService', () => {
@@ -11,9 +11,7 @@ describe('DashboardService', () => {
       'findCurrentlyReading' | 'findRecentActivity' | 'findLastCompleted'
     >
   >
-  let statsService: jest.Mocked<
-    Pick<ReadingSessionsStatsService, 'weeklyStats'>
-  >
+  let statsService: jest.Mocked<Pick<StatsService, 'weeklyStats'>>
 
   const currentlyReading = { id: 'book-current', title: 'Current Book' }
   const recentActivity = [{ id: 'book-recent' }]
@@ -39,7 +37,7 @@ describe('DashboardService', () => {
           },
         },
         {
-          provide: ReadingSessionsStatsService,
+          provide: StatsService,
           useValue: { weeklyStats: jest.fn() },
         },
       ],
@@ -47,7 +45,7 @@ describe('DashboardService', () => {
 
     service = module.get<DashboardService>(DashboardService)
     booksService = module.get(BooksService)
-    statsService = module.get(ReadingSessionsStatsService)
+    statsService = module.get(StatsService)
   })
 
   it('composes the current book, activity, completed books, and weekly stats', async () => {

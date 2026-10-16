@@ -43,7 +43,7 @@ gasto), define metas anuais e acompanha estatísticas de atividade.
   só tem `bookId`), a validação é feita via `innerJoin` com `books`
 - **Activity/Dashboard como agregações computadas:** não existem tabelas
   próprias de "atividade" ou "dashboard", ambas são derivadas das reading
-  sessions sob demanda, via um `ReadingSessionsStatsService` dedicado, e
+  sessions sob demanda, via um `StatsService` dedicado, e
   não são persistidas
 - **Imutabilidade histórica:** `durationSeconds` é calculado e persistido no
   momento da criação da sessão (usando o `readingSpeed` do usuário *naquele

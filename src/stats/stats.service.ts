@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
+import { StatsRepository } from './stats.repository'
 import { formatDate } from '@/common/format-date'
 import type { ReadingSession } from '@/reading-sessions/reading-sessions.types'
 
 @Injectable()
-export class ReadingSessionsStatsService {
-  constructor(private readonly repository: ReadingSessionsStatsRepository) {}
+export class StatsService {
+  constructor(private readonly repository: StatsRepository) {}
 
   private readonly weekDayLabels = [
     'Mon',

@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common'
 import { DatabaseModule } from '@/database/database.module'
-import { ReadingSessionsStatsService } from './reading-sessions-stats.service'
-import { DrizzleReadingSessionsStatsRepository } from './reading-sessions-stats.drizzle-repository'
-import { ReadingSessionsStatsRepository } from './reading-sessions-stats.repository'
+import { StatsService } from './stats.service'
+import { DrizzleStatsRepository } from './stats.drizzle-repository'
+import { StatsRepository } from './stats.repository'
 
 @Module({
   imports: [DatabaseModule],
   providers: [
-    ReadingSessionsStatsService,
-    DrizzleReadingSessionsStatsRepository,
+    StatsService,
+    DrizzleStatsRepository,
     {
-      provide: ReadingSessionsStatsRepository,
-      useExisting: DrizzleReadingSessionsStatsRepository,
+      provide: StatsRepository,
+      useExisting: DrizzleStatsRepository,
     },
   ],
-  exports: [ReadingSessionsStatsService],
+  exports: [StatsService],
 })
 export class StatsModule {}
