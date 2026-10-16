@@ -25,6 +25,7 @@ export const books = pgTable('books', {
   title: text('title').notNull(),
   author: text('author').notNull(),
   genre: text('genre').notNull(),
+  notes: text('notes'),
   coverUrl: text('cover_url'),
   totalPages: integer('total_pages').notNull(),
   currentPage: integer('current_page').default(0),

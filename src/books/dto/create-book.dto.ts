@@ -9,6 +9,7 @@ import {
   IsDateString,
   Min,
   Max,
+  MaxLength,
 } from 'class-validator'
 import { statusEnum } from '@/database/schema/books.schema'
 
@@ -24,6 +25,18 @@ export class CreateBookDto {
   @ApiProperty({ description: 'Primary genre or shelf label.' })
   @IsString()
   genre: string
+
+  @ApiPropertyOptional({
+    description:
+      'Optional free-form notes, annotations, summaries, analyses, or reviews. Maximum 5000 characters.',
+    type: String,
+    nullable: true,
+    maxLength: 5000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  notes?: string | null
 
   @ApiPropertyOptional({
     description: 'Optional cover image URL. Null when no cover is set.',

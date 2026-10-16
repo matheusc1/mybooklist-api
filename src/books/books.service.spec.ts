@@ -15,6 +15,7 @@ describe('BooksService', () => {
     title: 'The Hobbit',
     author: 'J. R. R. Tolkien',
     genre: 'Fantasy',
+    notes: null,
     coverUrl: null,
     totalPages: 300,
     currentPage: 50,
@@ -91,6 +92,24 @@ describe('BooksService', () => {
     expect(repository.create).toHaveBeenCalledWith(data)
   })
 
+  it('creates a book with free-form notes', async () => {
+    const notes = 'A thoughtful review.'
+    const data: NewBook = {
+      userId: 'user-123',
+      title: 'The Hobbit',
+      author: 'J. R. R. Tolkien',
+      genre: 'Fantasy',
+      notes,
+      totalPages: 300,
+      status: 'planned',
+    }
+    const createdBook = { ...mockBook, notes }
+    repository.create.mockResolvedValue(createdBook)
+
+    await expect(service.create(data)).resolves.toEqual(createdBook)
+    expect(repository.create).toHaveBeenCalledWith(data)
+  })
+
   it('defaults an omitted current page to zero when creating a book', async () => {
     const data: NewBook = {
       userId: 'user-123',
@@ -132,6 +151,26 @@ describe('BooksService', () => {
     ).resolves.toEqual(updatedBook)
     expect(repository.findOne).toHaveBeenCalledWith('book-123', 'user-123')
     expect(repository.update).toHaveBeenCalledWith('book-123', updateData)
+  })
+
+  it('updates or clears free-form notes on an owned book', async () => {
+    const updateData: Partial<NewBook> = { notes: 'Updated notes.' }
+    const updatedBook = { ...mockBook, ...updateData }
+    repository.findOne.mockResolvedValue(mockBook)
+    repository.update.mockResolvedValue(updatedBook)
+
+    await expect(
+      service.update('book-123', 'user-123', updateData),
+    ).resolves.toEqual(updatedBook)
+    expect(repository.update).toHaveBeenCalledWith('book-123', updateData)
+
+    repository.update.mockResolvedValue({ ...mockBook, notes: null })
+    await expect(
+      service.update('book-123', 'user-123', { notes: null }),
+    ).resolves.toEqual({ ...mockBook, notes: null })
+    expect(repository.update).toHaveBeenLastCalledWith('book-123', {
+      notes: null,
+    })
   })
 
   it('rejects an update when the new total pages makes progress invalid', async () => {

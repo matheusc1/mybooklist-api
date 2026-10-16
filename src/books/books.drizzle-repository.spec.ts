@@ -29,6 +29,7 @@ describe('DrizzleBooksRepository', () => {
     title: 'The Hobbit',
     author: 'J. R. R. Tolkien',
     genre: 'Fantasy',
+    notes: null,
     coverUrl: null,
     totalPages: 300,
     currentPage: 50,

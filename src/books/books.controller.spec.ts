@@ -27,6 +27,7 @@ describe('BooksController', () => {
     title: 'The Hobbit',
     author: 'J. R. R. Tolkien',
     genre: 'Fantasy',
+    notes: null,
     coverUrl: null,
     totalPages: 300,
     currentPage: 0,
@@ -80,6 +81,7 @@ describe('BooksController', () => {
       title: 'The Hobbit',
       author: 'J. R. R. Tolkien',
       genre: 'Fantasy',
+      notes: 'A review.',
       totalPages: 300,
       status: 'planned' as const,
     }

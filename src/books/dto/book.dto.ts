@@ -18,6 +18,15 @@ export class BookDto {
   genre: string
 
   @ApiProperty({
+    description:
+      'Free-form notes, annotations, summaries, analyses, or reviews.',
+    type: String,
+    nullable: true,
+    maxLength: 5000,
+  })
+  notes: string | null
+
+  @ApiProperty({
     description: 'Cover image URL, or null if no cover was provided.',
     type: String,
     nullable: true,

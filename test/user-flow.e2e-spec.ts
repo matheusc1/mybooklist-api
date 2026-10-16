@@ -70,6 +70,7 @@ describe('Cross-module reading flow (e2e)', () => {
         title: 'The Hobbit',
         author: 'J. R. R. Tolkien',
         genre: 'Fantasy',
+        notes: 'A thoughtful review of the book.',
         totalPages: 300,
         status: 'planned',
       })
@@ -81,6 +82,7 @@ describe('Cross-module reading flow (e2e)', () => {
       id: bookId,
       userId: user.id,
       title: 'The Hobbit',
+      notes: 'A thoughtful review of the book.',
       currentPage: 0,
       status: 'planned',
     })
@@ -110,7 +112,11 @@ describe('Cross-module reading flow (e2e)', () => {
     await request(app.getHttpServer())
       .patch(`/books/${bookId}`)
       .set('Cookie', cookie)
-      .send({ title: 'The Hobbit Revised', rating: 5 })
+      .send({
+        title: 'The Hobbit Revised',
+        rating: 5,
+        notes: 'Updated review, summary, and annotations.',
+      })
       .expect(200)
 
     const response = await request(app.getHttpServer())
@@ -120,7 +126,50 @@ describe('Cross-module reading flow (e2e)', () => {
     expect(response.body).toMatchObject({
       title: 'The Hobbit Revised',
       rating: 5,
+      notes: 'Updated review, summary, and annotations.',
     })
+  })
+
+  it('accepts 5000-character notes, allows clearing them, and rejects longer notes', async () => {
+    const maxLengthNotes = 'x'.repeat(5000)
+    await request(app.getHttpServer())
+      .patch(`/books/${bookId}`)
+      .set('Cookie', cookie)
+      .send({ notes: maxLengthNotes })
+      .expect(200)
+      .expect((response) => {
+        const body = response.body as { notes: string | null }
+        expect(body.notes).toHaveLength(5000)
+      })
+
+    await request(app.getHttpServer())
+      .patch(`/books/${bookId}`)
+      .set('Cookie', cookie)
+      .send({ notes: null })
+      .expect(200)
+      .expect((response) => {
+        const body = response.body as { notes: string | null }
+        expect(body.notes).toBeNull()
+      })
+
+    await request(app.getHttpServer())
+      .patch(`/books/${bookId}`)
+      .set('Cookie', cookie)
+      .send({ notes: 'x'.repeat(5001) })
+      .expect(400)
+
+    await request(app.getHttpServer())
+      .post('/books')
+      .set('Cookie', cookie)
+      .send({
+        title: 'Too many notes',
+        author: 'Author',
+        genre: 'Fantasy',
+        notes: 'x'.repeat(5001),
+        totalPages: 100,
+        status: 'planned',
+      })
+      .expect(400)
   })
 
   it('rejects unexpected goal fields through the global validation pipe', async () => {
