@@ -12,6 +12,7 @@ import { DashboardModule } from './dashboard/dashboard.module'
 import { ActivityModule } from './activity/activity.module'
 import { HealthModule } from './health/health.module'
 import { TestModule } from './test/test.module'
+import { BookDetailsModule } from './book-details/book-details.module'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TestModule } from './test/test.module'
     BooksModule,
     GoalsModule,
     ReadingSessionsModule,
+    BookDetailsModule,
     DashboardModule,
     ActivityModule,
     HealthModule,
