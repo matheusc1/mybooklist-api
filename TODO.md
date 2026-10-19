@@ -49,7 +49,7 @@ validada via `innerJoin` com `books`, como nas demais consultas. As
 estatísticas do livro são agregações computadas sob demanda, sem tabela
 própria.
 
-- [ ] Listar as sessões do livro em `reading-sessions` (repository e service,
+- [x] Listar as sessões do livro em `reading-sessions` (repository e service,
       com o service exportado para outros módulos)
 - [ ] Estatísticas do livro no módulo de stats: tempo total, quantidade de
       sessões, quantidade de dias de leitura

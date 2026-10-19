@@ -29,6 +29,15 @@ export class DrizzleReadingSessionsRepository extends ReadingSessionsRepository 
       .then((rows) => rows.map((r) => r.readingSession))
   }
 
+  async findByBookId(bookId: string, userId: string) {
+    return this.db
+      .select({ readingSession: readingSessions })
+      .from(readingSessions)
+      .innerJoin(books, eq(readingSessions.bookId, books.id))
+      .where(and(eq(books.id, bookId), eq(books.userId, userId)))
+      .then((rows) => rows.map((r) => r.readingSession))
+  }
+
   async findOne(id: string, userId: string) {
     const [row] = await this.db
       .select({ readingSession: readingSessions })

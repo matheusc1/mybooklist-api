@@ -19,6 +19,10 @@ export class ReadingSessionsService {
     return this.repository.findAll(userId)
   }
 
+  findByBookId(bookId: string, userId: string) {
+    return this.repository.findByBookId(bookId, userId)
+  }
+
   async findOne(id: string, userId: string) {
     const session = await this.repository.findOne(id, userId)
     if (!session)

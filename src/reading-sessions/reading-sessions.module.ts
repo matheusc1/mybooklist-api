@@ -17,5 +17,6 @@ import { ReadingSessionsRepository } from './reading-sessions.repository'
       useExisting: DrizzleReadingSessionsRepository,
     },
   ],
+  exports: [ReadingSessionsService],
 })
 export class ReadingSessionsModule {}

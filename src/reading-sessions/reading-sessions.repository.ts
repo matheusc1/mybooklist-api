@@ -6,6 +6,11 @@ import type {
 export abstract class ReadingSessionsRepository {
   abstract findAll(userId: string): Promise<ReadingSession[]>
 
+  abstract findByBookId(
+    bookId: string,
+    userId: string,
+  ): Promise<ReadingSession[]>
+
   abstract findOne(
     id: string,
     userId: string,
