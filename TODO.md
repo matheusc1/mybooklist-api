@@ -64,9 +64,9 @@ Uma rota que devolve tudo o que a tela do livro precisa. Importa `books`,
 - [x] Criar o módulo de detalhe do livro (`book-details`)
 - [x] Service de orquestração que devolve livro, sessões e estatísticas em
       uma resposta
-- [ ] Controller com rota por id do livro; livro inexistente ou de outro
+- [x] Controller com rota por id do livro; livro inexistente ou de outro
       usuário responde not found
-- [ ] Documentação no Swagger
+- [x] Documentação no Swagger
 - [ ] Testes unitários e E2E
 
 ---
