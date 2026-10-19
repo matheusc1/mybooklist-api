@@ -33,6 +33,7 @@ describe('ReadingSessionsService', () => {
           provide: ReadingSessionsRepository,
           useValue: {
             findAll: jest.fn(),
+            findByBookId: jest.fn(),
             findOne: jest.fn(),
             create: jest.fn(),
             update: jest.fn(),
@@ -53,6 +54,15 @@ describe('ReadingSessionsService', () => {
 
     await expect(service.findAll('user-123')).resolves.toEqual([session])
     expect(repository.findAll).toHaveBeenCalledWith('user-123')
+  })
+
+  it('finds sessions for a book on behalf of the owner', async () => {
+    repository.findByBookId.mockResolvedValue([session])
+
+    await expect(service.findByBookId('book-123', 'user-123')).resolves.toEqual(
+      [session],
+    )
+    expect(repository.findByBookId).toHaveBeenCalledWith('book-123', 'user-123')
   })
 
   it('throws when a session is not found for its owner', async () => {

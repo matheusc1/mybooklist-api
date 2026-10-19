@@ -1,5 +1,7 @@
 import { DrizzleStatsRepository } from './stats.drizzle-repository'
 import type { Database } from '@/database/database.types'
+import { books } from '@/database/schema/books.schema'
+import { and, eq } from 'drizzle-orm'
 
 describe('DrizzleStatsRepository', () => {
   let repository: DrizzleStatsRepository
@@ -57,6 +59,73 @@ describe('DrizzleStatsRepository', () => {
 
     await expect(repository.findDistinctReadDates('user-123')).resolves.toEqual(
       ['2026-09-02', '2026-09-01'],
+    )
+  })
+
+  it('aggregates session count, reading seconds, and distinct days for an owned book', async () => {
+    const aggregate = {
+      sessions: 3,
+      totalReadingSeconds: '5410',
+      activeDays: 2,
+    }
+    const where = jest.fn().mockResolvedValue([aggregate])
+    const selection = jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where,
+    })
+    db.select.mockImplementation(selection)
+
+    await expect(
+      repository.findBookStats('book-123', 'user-123'),
+    ).resolves.toEqual(aggregate)
+    expect(where).toHaveBeenCalledWith(
+      and(eq(books.id, 'book-123'), eq(books.userId, 'user-123')),
+    )
+  })
+
+  it('returns zero totals when an owned book has no sessions', async () => {
+    const where = jest
+      .fn()
+      .mockResolvedValue([
+        { sessions: 0, totalReadingSeconds: null, activeDays: 0 },
+      ])
+    db.select.mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where,
+    })
+
+    await expect(
+      repository.findBookStats('book-123', 'user-123'),
+    ).resolves.toEqual({
+      sessions: 0,
+      totalReadingSeconds: null,
+      activeDays: 0,
+    })
+  })
+
+  it('returns zero totals for a book that is not owned by the user', async () => {
+    const where = jest
+      .fn()
+      .mockResolvedValue([
+        { sessions: 0, totalReadingSeconds: null, activeDays: 0 },
+      ])
+    db.select.mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where,
+    })
+
+    await expect(
+      repository.findBookStats('another-users-book', 'user-123'),
+    ).resolves.toEqual({
+      sessions: 0,
+      totalReadingSeconds: null,
+      activeDays: 0,
+    })
+    expect(where).toHaveBeenCalledWith(
+      and(eq(books.id, 'another-users-book'), eq(books.userId, 'user-123')),
     )
   })
 })

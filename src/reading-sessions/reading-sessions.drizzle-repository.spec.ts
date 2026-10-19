@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { BooksRepository } from '@/books/books.repository'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
+import { books } from '@/database/schema/books.schema'
+import { and, eq } from 'drizzle-orm'
 import { DrizzleReadingSessionsRepository } from './reading-sessions.drizzle-repository'
 import type { ReadingSession } from './reading-sessions.types'
 
@@ -62,6 +64,38 @@ describe('DrizzleReadingSessionsRepository', () => {
     })
 
     await expect(repository.findAll('user-123')).resolves.toEqual([session])
+  })
+
+  it('lists sessions only for the requested book owned by the user', async () => {
+    const where = jest.fn().mockResolvedValue([{ readingSession: session }])
+    db.select.mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where,
+    })
+
+    await expect(
+      repository.findByBookId('book-123', 'user-123'),
+    ).resolves.toEqual([session])
+    expect(where).toHaveBeenCalledWith(
+      and(eq(books.id, 'book-123'), eq(books.userId, 'user-123')),
+    )
+  })
+
+  it('returns no sessions when the requested book is not owned by the user', async () => {
+    const where = jest.fn().mockResolvedValue([])
+    db.select.mockReturnValue({
+      from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      where,
+    })
+
+    await expect(
+      repository.findByBookId('another-users-book', 'user-123'),
+    ).resolves.toEqual([])
+    expect(where).toHaveBeenCalledWith(
+      and(eq(books.id, 'another-users-book'), eq(books.userId, 'user-123')),
+    )
   })
 
   it('returns the owned session from a joined lookup', async () => {

@@ -53,7 +53,7 @@ própria.
       com o service exportado para outros módulos)
 - [x] Estatísticas do livro no módulo de stats: tempo total, quantidade de
       sessões, quantidade de dias de leitura
-- [ ] Testes unitários (inclui ownership: usuário não acessa sessões de
+- [x] Testes unitários (inclui ownership: usuário não acessa sessões de
       livro de outro)
 
 ### 2.3 Detalhe do livro (módulo de composição)

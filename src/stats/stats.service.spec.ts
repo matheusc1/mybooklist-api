@@ -36,6 +36,7 @@ describe('StatsService', () => {
             findInRange: jest.fn(),
             findMonthlyActivity: jest.fn(),
             findDistinctReadDates: jest.fn(),
+            findBookStats: jest.fn(),
           },
         },
       ],
@@ -109,6 +110,38 @@ describe('StatsService', () => {
       '2026-02-01',
       '2026-02-28',
     )
+  })
+
+  it('returns total book reading time in rounded minutes, session count, and active days', async () => {
+    repository.findBookStats.mockResolvedValue({
+      sessions: 3,
+      totalReadingSeconds: '5410',
+      activeDays: 2,
+    })
+
+    await expect(service.bookStats('book-123', 'user-123')).resolves.toEqual({
+      sessions: 3,
+      readingTime: 90,
+      activeDays: 2,
+    })
+    expect(repository.findBookStats).toHaveBeenCalledWith(
+      'book-123',
+      'user-123',
+    )
+  })
+
+  it('returns zeroed book stats when the book has no reading sessions', async () => {
+    repository.findBookStats.mockResolvedValue({
+      sessions: 0,
+      totalReadingSeconds: null,
+      activeDays: 0,
+    })
+
+    await expect(service.bookStats('book-123', 'user-123')).resolves.toEqual({
+      sessions: 0,
+      readingTime: 0,
+      activeDays: 0,
+    })
   })
 
   it('rejects invalid month formats', async () => {
