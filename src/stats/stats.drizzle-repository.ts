@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { and, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, count, countDistinct, desc, eq, gte, lte, sum } from 'drizzle-orm'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import { readingSessions } from '@/database/schema/reading-sessions.schema'
 import { StatsRepository } from './stats.repository'
-import type { MonthlyActivityRow } from './stats.repository'
+import type { BookStatsRow, MonthlyActivityRow } from './stats.repository'
 
 @Injectable()
 export class DrizzleStatsRepository extends StatsRepository {
@@ -65,5 +65,21 @@ export class DrizzleStatsRepository extends StatsRepository {
       .where(eq(books.userId, userId))
       .orderBy(desc(readingSessions.readAt))
       .then((rows) => rows.map((r) => r.readAt))
+  }
+
+  async findBookStats(bookId: string, userId: string): Promise<BookStatsRow> {
+    const [stats] = await this.db
+      .select({
+        sessions: count(readingSessions.id),
+        totalReadingSeconds: sum(readingSessions.durationSeconds),
+        activeDays: countDistinct(readingSessions.readAt),
+      })
+      .from(readingSessions)
+      .innerJoin(books, eq(readingSessions.bookId, books.id))
+      .where(and(eq(books.id, bookId), eq(books.userId, userId)))
+
+    if (!stats) throw new Error('Book stats aggregation returned no result')
+
+    return stats
   }
 }

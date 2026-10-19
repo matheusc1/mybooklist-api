@@ -58,6 +58,16 @@ export class StatsService {
     }
   }
 
+  async bookStats(bookId: string, userId: string) {
+    const stats = await this.repository.findBookStats(bookId, userId)
+
+    return {
+      sessions: stats.sessions,
+      readingTime: Math.round(Number(stats.totalReadingSeconds ?? 0) / 60),
+      activeDays: stats.activeDays,
+    }
+  }
+
   async monthlyActivity(userId: string, month: string) {
     const { start, end } = this.getMonthRange(month)
 

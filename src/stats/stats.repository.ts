@@ -12,6 +12,12 @@ export interface MonthlyActivityRow {
   duration: number
 }
 
+export interface BookStatsRow {
+  sessions: number
+  totalReadingSeconds: string | null
+  activeDays: number
+}
+
 export abstract class StatsRepository {
   abstract findInRange(
     userId: string,
@@ -26,4 +32,6 @@ export abstract class StatsRepository {
   ): Promise<MonthlyActivityRow[]>
 
   abstract findDistinctReadDates(userId: string): Promise<string[]>
+
+  abstract findBookStats(bookId: string, userId: string): Promise<BookStatsRow>
 }

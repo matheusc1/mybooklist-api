@@ -51,7 +51,7 @@ própria.
 
 - [x] Listar as sessões do livro em `reading-sessions` (repository e service,
       com o service exportado para outros módulos)
-- [ ] Estatísticas do livro no módulo de stats: tempo total, quantidade de
+- [x] Estatísticas do livro no módulo de stats: tempo total, quantidade de
       sessões, quantidade de dias de leitura
 - [ ] Testes unitários (inclui ownership: usuário não acessa sessões de
       livro de outro)
