@@ -240,6 +240,35 @@ describe('Cross-module reading flow (e2e)', () => {
       sessions: 1,
       pages: 300,
     })
+
+    const bookDetails = await request(app.getHttpServer())
+      .get(`/book-details/${bookId}`)
+      .set('Cookie', cookie)
+      .expect(200)
+    const bookDetailsBody = bookDetails.body as {
+      book: { id: string; title: string }
+      readingSessions: Array<{
+        id: string
+        bookId: string
+        fromPage: number
+        toPage: number
+        durationSeconds: number
+      }>
+      stats: { sessions: number; activeDays: number; readingTime: number }
+    }
+    expect(bookDetailsBody).toMatchObject({
+      book: { id: bookId, title: 'The Hobbit Revised' },
+      readingSessions: [
+        {
+          id: sessionId,
+          bookId,
+          fromPage: 1,
+          toPage: 300,
+          durationSeconds: 18000,
+        },
+      ],
+      stats: { sessions: 1, activeDays: 1, readingTime: 300 },
+    })
   })
 
   it('updates reading speed and reflects it in the authenticated profile', async () => {

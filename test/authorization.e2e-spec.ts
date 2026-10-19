@@ -101,6 +101,18 @@ describe('Resource authorization and not-found behavior (e2e)', () => {
       .expect(404)
   })
 
+  it("returns 404 for missing or another user's book details", async () => {
+    await request(app.getHttpServer())
+      .get(`/book-details/${missingBookId}`)
+      .set('Cookie', ownerCookie)
+      .expect(404)
+
+    await request(app.getHttpServer())
+      .get(`/book-details/${bookId}`)
+      .set('Cookie', otherCookie)
+      .expect(404)
+  })
+
   it('returns 404 for missing reading-session GET, PATCH, and DELETE requests', async () => {
     await request(app.getHttpServer())
       .get(`/reading-sessions/${missingSessionId}`)

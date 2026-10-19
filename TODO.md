@@ -67,7 +67,7 @@ Uma rota que devolve tudo o que a tela do livro precisa. Importa `books`,
 - [x] Controller com rota por id do livro; livro inexistente ou de outro
       usuário responde not found
 - [x] Documentação no Swagger
-- [ ] Testes unitários e E2E
+- [x] Testes unitários e E2E
 
 ---
 
