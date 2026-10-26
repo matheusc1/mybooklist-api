@@ -68,6 +68,29 @@ export class StatsService {
     }
   }
 
+  async yearlyStats(userId: string, year: number) {
+    const sessions = await this.findSessionsInRange(
+      userId,
+      `${year}-01-01`,
+      `${year}-12-31`,
+    )
+
+    const pagesByMonth = Array<number>(12).fill(0)
+
+    for (const session of sessions) {
+      const month = Number(session.readAt.slice(5, 7)) - 1
+      pagesByMonth[month] += session.toPage - session.fromPage + 1
+    }
+
+    return {
+      sessions: sessions.length,
+      pages: this.sumPages(sessions),
+      readingTime: this.sumMinutes(sessions),
+      activeDays: new Set(sessions.map((s) => s.readAt)).size,
+      pagesByMonth,
+    }
+  }
+
   async monthlyActivity(userId: string, month: string) {
     const { start, end } = this.getMonthRange(month)
 

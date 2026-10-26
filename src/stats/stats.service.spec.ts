@@ -151,6 +151,40 @@ describe('StatsService', () => {
     expect(repository.findInRange).not.toHaveBeenCalled()
   })
 
+  it('aggregates yearly sessions and pages read per month', async () => {
+    repository.findInRange.mockResolvedValue([
+      session('2025-01-01', 1, 10, 600),
+      session('2025-01-01', 11, 20, 300),
+      session('2025-06-15', 1, 3, 90),
+      session('2025-12-31', 1, 5, 30),
+    ])
+
+    await expect(service.yearlyStats('user-123', 2025)).resolves.toEqual({
+      sessions: 4,
+      pages: 28,
+      readingTime: 17,
+      activeDays: 3,
+      pagesByMonth: [20, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 5],
+    })
+    expect(repository.findInRange).toHaveBeenCalledWith(
+      'user-123',
+      '2025-01-01',
+      '2025-12-31',
+    )
+  })
+
+  it('returns zeroed yearly stats with 12 months for a year without data', async () => {
+    repository.findInRange.mockResolvedValue([])
+
+    await expect(service.yearlyStats('user-123', 2024)).resolves.toEqual({
+      sessions: 0,
+      pages: 0,
+      readingTime: 0,
+      activeDays: 0,
+      pagesByMonth: Array(12).fill(0),
+    })
+  })
+
   it('groups monthly activity by date and converts duration to minutes', async () => {
     repository.findMonthlyActivity.mockResolvedValue([
       {

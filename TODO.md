@@ -87,13 +87,13 @@ Hoje o `GoalsService` usa a data atual internamente e a rota não recebe ano.
 Equivalente anual do `monthlyStats`, agregação computada sob demanda, sem
 tabela própria. Um livro conta no ano pelo `completedAt`.
 
-- [ ] `yearlyStats` no módulo de stats (sessões, páginas lidas, tempo de
-      leitura, dias ativos, livros concluídos)
-- [ ] `pagesByMonth` (12 meses, de janeiro a dezembro) no `yearlyStats`, para o
+- [x] `yearlyStats` no módulo de stats (sessões, páginas lidas, tempo de
+      leitura, dias ativos)
+- [x] `pagesByMonth` (12 meses, de janeiro a dezembro) no `yearlyStats`, para o
       gráfico da página anual
-- [ ] Aceitar o ano como parâmetro; ano sem dados devolve zeros, inclusive nas
+- [x] Aceitar o ano como parâmetro; ano sem dados devolve zeros, inclusive nas
       12 posições de `pagesByMonth`
-- [ ] Testes unitários
+- [x] Testes unitários
 
 ### 3.3 Livros concluídos do ano
 
