@@ -60,4 +60,8 @@ export class BooksService {
   findLastCompleted(userId: string, quantity: number) {
     return this.repository.findLastCompleted(userId, quantity)
   }
+
+  findCompletedByYear(userId: string, year: number) {
+    return this.repository.findCompletedByYear(userId, year)
+  }
 }

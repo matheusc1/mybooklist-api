@@ -101,11 +101,11 @@ A tela anual agrupa os livros por mês no front. O backend entrega os livros
 concluídos no ano em ordem cronológica, com o mesmo critério de ano do
 `countCompleted`.
 
-- [ ] Nova função em `books` (`findCompletedByYear`), sem alterar a assinatura
+- [x] Nova função em `books` (`findCompletedByYear`), sem alterar a assinatura
       do `findLastCompleted`, que continua servindo ao dashboard
-- [ ] Ordenar por `completedAt` e reaproveitar o critério de intervalo do ano
+- [x] Ordenar por `completedAt` e reaproveitar o critério de intervalo do ano
       do `countCompleted`
-- [ ] Testes unitários
+- [x] Testes unitários
 
 ### 3.4 Visão anual (módulo de composição)
 

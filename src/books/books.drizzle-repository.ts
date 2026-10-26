@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
-import { and, eq, gte, lt } from 'drizzle-orm'
+import { and, asc, eq, gte, lt } from 'drizzle-orm'
 import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database, Transaction } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
@@ -40,15 +40,15 @@ export class DrizzleBooksRepository extends BooksRepository {
   }
 
   countCompleted(userId: string, year: number) {
-    return this.db.$count(
-      books,
-      and(
-        eq(books.userId, userId),
-        eq(books.status, 'completed'),
-        gte(books.completedAt, formatDate(new Date(year, 0, 1))),
-        lt(books.completedAt, formatDate(new Date(year + 1, 0, 1))),
-      ),
-    )
+    return this.db.$count(books, this.completedInYear(userId, year))
+  }
+
+  findCompletedByYear(userId: string, year: number) {
+    return this.db
+      .select()
+      .from(books)
+      .where(this.completedInYear(userId, year))
+      .orderBy(asc(books.completedAt), asc(books.title))
   }
 
   findCurrentlyReading(userId: string) {
@@ -113,5 +113,14 @@ export class DrizzleBooksRepository extends BooksRepository {
       .where(eq(books.id, book.id))
       .returning()
     return updated
+  }
+
+  private completedInYear(userId: string, year: number) {
+    return and(
+      eq(books.userId, userId),
+      eq(books.status, 'completed'),
+      gte(books.completedAt, formatDate(new Date(year, 0, 1))),
+      lt(books.completedAt, formatDate(new Date(year + 1, 0, 1))),
+    )
   }
 }

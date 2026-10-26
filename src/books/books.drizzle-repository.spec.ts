@@ -13,6 +13,7 @@ type MockQuery = {
 
 type MockDatabase = {
   query: MockQuery
+  select: jest.Mock
   insert: jest.Mock
   update: jest.Mock
   delete: jest.Mock
@@ -49,6 +50,7 @@ describe('DrizzleBooksRepository', () => {
           findMany: jest.fn(),
         },
       },
+      select: jest.fn(),
       insert: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -130,6 +132,30 @@ describe('DrizzleBooksRepository', () => {
 
     await expect(repository.countCompleted('user-123', 2024)).resolves.toBe(2)
     expect(db.$count).toHaveBeenCalledWith(books, expect.anything())
+  })
+
+  it('finds the books completed in the requested year in chronological order', async () => {
+    const completedBook = {
+      ...mockBook,
+      status: 'completed' as const,
+      completedAt: '2024-03-10',
+    }
+    const selectQuery = {
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockResolvedValue([completedBook]),
+    }
+    db.select.mockReturnValue(selectQuery)
+
+    await expect(
+      repository.findCompletedByYear('user-123', 2024),
+    ).resolves.toEqual([completedBook])
+    expect(selectQuery.from).toHaveBeenCalledWith(books)
+    expect(selectQuery.where).toHaveBeenCalledWith(expect.anything())
+    expect(selectQuery.orderBy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+    )
   })
 
   it('finds the most recently updated reading book', async () => {

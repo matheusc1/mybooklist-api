@@ -14,6 +14,8 @@ export abstract class BooksRepository {
 
   abstract countCompleted(userId: string, year: number): Promise<number>
 
+  abstract findCompletedByYear(userId: string, year: number): Promise<Book[]>
+
   abstract findCurrentlyReading(userId: string): Promise<Book | undefined>
 
   abstract findRecentActivity(

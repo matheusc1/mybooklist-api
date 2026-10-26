@@ -41,6 +41,7 @@ describe('BooksService', () => {
             delete: jest.fn(),
             countCompleted: jest.fn(),
             findCurrentlyReading: jest.fn(),
+            findCompletedByYear: jest.fn(),
             findRecentActivity: jest.fn(),
             findLastCompleted: jest.fn(),
           },
@@ -236,6 +237,18 @@ describe('BooksService', () => {
       'book-456',
     )
     expect(repository.findLastCompleted).toHaveBeenCalledWith('user-123', 3)
+  })
+
+  it('delegates the completed books of a year to the repository', async () => {
+    repository.findCompletedByYear.mockResolvedValue([mockBook])
+
+    await expect(
+      service.findCompletedByYear('user-123', 2025),
+    ).resolves.toEqual([mockBook])
+    expect(repository.findCompletedByYear).toHaveBeenCalledWith(
+      'user-123',
+      2025,
+    )
   })
 
   it('propagates repository errors', async () => {
