@@ -13,14 +13,14 @@ export class GoalsService {
     return new Date().getFullYear()
   }
 
-  find(userId: string) {
-    return this.repository.find(userId, this.year)
+  find(userId: string, year = this.year) {
+    return this.repository.find(userId, year)
   }
 
-  async findWithProgress(userId: string) {
-    const goal = await this.find(userId)
-    const completed = await this.booksService.countCompleted(userId, this.year)
-    return { year: this.year, target: goal?.target ?? null, current: completed }
+  async findWithProgress(userId: string, year = this.year) {
+    const goal = await this.find(userId, year)
+    const completed = await this.booksService.countCompleted(userId, year)
+    return { year, target: goal?.target ?? null, current: completed }
   }
 
   async upsert(userId: string, target: number) {

@@ -77,10 +77,10 @@ Uma rota que devolve tudo o que a tela do livro precisa. Importa `books`,
 
 Hoje o `GoalsService` usa a data atual internamente e a rota não recebe ano.
 
-- [ ] Aceitar o ano como parâmetro na consulta da meta em `goals` (sem meta
+- [x] Aceitar o ano como parâmetro na consulta da meta em `goals` (sem meta
       no ano: `target: null`, `current: 0`)
-- [ ] Exportar o service no `GoalsModule`, para o módulo do 3.4 usar
-- [ ] Testes unitários e E2E
+- [x] Exportar o service no `GoalsModule`, para o módulo do 3.4 usar
+- [x] Testes unitários
 
 ### 3.2 Estatísticas anuais
 

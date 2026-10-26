@@ -14,5 +14,6 @@ import { GoalsRepository } from './goals.repository'
     DrizzleGoalsRepository,
     { provide: GoalsRepository, useExisting: DrizzleGoalsRepository },
   ],
+  exports: [GoalsService],
 })
 export class GoalsModule {}

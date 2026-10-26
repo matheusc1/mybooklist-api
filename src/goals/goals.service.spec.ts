@@ -109,4 +109,38 @@ describe('GoalsService', () => {
       'book count failed',
     )
   })
+
+  it('finds the goal for a given year', async () => {
+    repository.find.mockResolvedValue({ ...goal, year: 2025 })
+
+    await expect(service.find('user-123', 2025)).resolves.toEqual({
+      ...goal,
+      year: 2025,
+    })
+    expect(repository.find).toHaveBeenCalledWith('user-123', 2025)
+  })
+
+  it('combines a past-year goal with the completed-book count of that year', async () => {
+    repository.find.mockResolvedValue({ ...goal, year: 2025, target: 30 })
+    booksService.countCompleted.mockResolvedValue(28)
+
+    await expect(service.findWithProgress('user-123', 2025)).resolves.toEqual({
+      year: 2025,
+      target: 30,
+      current: 28,
+    })
+    expect(repository.find).toHaveBeenCalledWith('user-123', 2025)
+    expect(booksService.countCompleted).toHaveBeenCalledWith('user-123', 2025)
+  })
+
+  it('returns a null target with the real count for a past year without a goal', async () => {
+    repository.find.mockResolvedValue(undefined)
+    booksService.countCompleted.mockResolvedValue(8)
+
+    await expect(service.findWithProgress('user-123', 2025)).resolves.toEqual({
+      year: 2025,
+      target: null,
+      current: 8,
+    })
+  })
 })
