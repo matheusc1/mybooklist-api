@@ -14,7 +14,7 @@ export class GoalProgressDto {
   target: number | null
 
   @ApiProperty({
-    description: 'Books completed in the current year.',
+    description: 'Books completed in the goal year.',
     example: 12,
   })
   current: number
