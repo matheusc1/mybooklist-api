@@ -13,6 +13,7 @@ import { ActivityModule } from './activity/activity.module'
 import { HealthModule } from './health/health.module'
 import { TestModule } from './test/test.module'
 import { BookDetailsModule } from './book-details/book-details.module'
+import { YearlyOverviewModule } from './yearly-overview/yearly-overview.module'
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { BookDetailsModule } from './book-details/book-details.module'
     BookDetailsModule,
     DashboardModule,
     ActivityModule,
+    YearlyOverviewModule,
     HealthModule,
     ...(process.env.E2E_TEST_MODE === 'true' &&
     process.env.NODE_ENV !== 'production'

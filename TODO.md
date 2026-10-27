@@ -111,11 +111,11 @@ concluídos no ano em ordem cronológica, com o mesmo critério de ano do
 
 Uma rota que devolve tudo o que a tela anual precisa.
 
-- [ ] Criar o módulo da visão anual (`yearly-overview`), importando `goals`,
+- [x] Criar o módulo da visão anual (`yearly-overview`), importando `goals`,
       stats e `books`
-- [ ] Service de orquestração que devolve meta, estatísticas anuais e livros
+- [x] Service de orquestração que devolve meta, estatísticas anuais e livros
       concluídos do ano em uma resposta
-- [ ] Controller com rota por ano; validar o parâmetro (inteiro válido), pois
+- [x] Controller com rota por ano; validar o parâmetro (inteiro válido), pois
       ano inválido é erro de validação e não ano vazio
-- [ ] Documentação no Swagger
-- [ ] Testes unitários e E2E
+- [x] Documentação no Swagger
+- [] Testes unitários e E2E
