@@ -218,6 +218,24 @@ describe('Cross-module reading flow (e2e)', () => {
       .expect(200)
     expect(goal.body).toMatchObject({ year, target: 1, current: 1 })
 
+    const yearlyOverview = await request(app.getHttpServer())
+      .get(`/yearly-overview/${year}`)
+      .set('Cookie', cookie)
+      .expect(200)
+    const yearlyOverviewBody = yearlyOverview.body as {
+      goal: unknown
+      yearlyStats: { sessions: number; pages: number }
+      completedBooks: Array<{ id: string }>
+    }
+    expect(yearlyOverviewBody.goal).toEqual(goal.body)
+    expect(yearlyOverviewBody.yearlyStats).toMatchObject({
+      sessions: 1,
+      pages: 300,
+    })
+    expect(yearlyOverviewBody.completedBooks).toEqual([
+      expect.objectContaining({ id: bookId }),
+    ])
+
     const dashboard = await request(app.getHttpServer())
       .get('/dashboard')
       .set('Cookie', cookie)
@@ -295,6 +313,16 @@ describe('Cross-module reading flow (e2e)', () => {
       .set('Cookie', cookie)
       .expect(400)
   })
+
+  it.each(['abc', '999', '10000'])(
+    'rejects %s as a yearly overview year',
+    async (year) => {
+      await request(app.getHttpServer())
+        .get(`/yearly-overview/${year}`)
+        .set('Cookie', cookie)
+        .expect(400)
+    },
+  )
 
   it('deletes the session and explicitly resets the book progress', async () => {
     await request(app.getHttpServer())

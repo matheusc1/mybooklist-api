@@ -113,6 +113,27 @@ describe('Resource authorization and not-found behavior (e2e)', () => {
       .expect(404)
   })
 
+  it('does not expose the reading of another user in the yearly overview', async () => {
+    const year = new Date().getFullYear()
+
+    const owned = await request(app.getHttpServer())
+      .get(`/yearly-overview/${year}`)
+      .set('Cookie', ownerCookie)
+      .expect(200)
+    expect(owned.body).toMatchObject({
+      yearlyStats: { sessions: 1, pages: 5 },
+    })
+
+    const other = await request(app.getHttpServer())
+      .get(`/yearly-overview/${year}`)
+      .set('Cookie', otherCookie)
+      .expect(200)
+    expect(other.body).toMatchObject({
+      yearlyStats: { sessions: 0, pages: 0 },
+      completedBooks: [],
+    })
+  })
+
   it('returns 404 for missing reading-session GET, PATCH, and DELETE requests', async () => {
     await request(app.getHttpServer())
       .get(`/reading-sessions/${missingSessionId}`)

@@ -118,4 +118,4 @@ Uma rota que devolve tudo o que a tela anual precisa.
 - [x] Controller com rota por ano; validar o parâmetro (inteiro válido), pois
       ano inválido é erro de validação e não ano vazio
 - [x] Documentação no Swagger
-- [] Testes unitários e E2E
+- [x] Testes unitários e E2E
