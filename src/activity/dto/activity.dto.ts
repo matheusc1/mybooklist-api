@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { MonthlyStatsDto } from '@/stats/dto/monthly-stats.dto'
-import { CalendarDayDto } from '@/stats/dto/monthly-activity.dto'
+import { MonthlyStatsDto } from '../../stats/dto/monthly-stats.dto'
+import { CalendarDayDto } from '../../stats/dto/monthly-activity.dto'
 
 export class ActivityDto {
   @ApiProperty({ type: MonthlyStatsDto })

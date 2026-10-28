@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { BookDto } from '@/books/dto/book.dto'
-import { GoalProgressDto } from '@/goals/dto/goal-progress.dto'
-import { YearlyStatsDto } from '@/stats/dto/yearly-stats.dto'
+import { BookDto } from '../../books/dto/book.dto'
+import { GoalProgressDto } from '../../goals/dto/goal-progress.dto'
+import { YearlyStatsDto } from '../../stats/dto/yearly-stats.dto'
 
 export class YearlyOverviewDto {
   @ApiProperty({

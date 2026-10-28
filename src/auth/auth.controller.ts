@@ -27,7 +27,7 @@ import type { OAuthProfile } from './auth.types'
 import { toPublicUser } from '@/users/users.mapper'
 import type { User } from '@/users/users.types'
 import { GithubAuthGuard } from './guards/github-auth.guard'
-import { PublicUserDto } from '@/users/dto/public-user.dto'
+import { PublicUserDto } from '../users/dto/public-user.dto'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
