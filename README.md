@@ -77,7 +77,7 @@ Algumas decisões concretas construídas sobre esse princípio:
   é explícita do usuário, via a opção `resetToPlanned` no delete.
 
 Raciocínio completo de cada decisão (contexto, alternativas consideradas,
-motivos) em `DECISIONS.md`.
+motivos) em [DECISIONS.md](./DECISIONS.md).
 
 ## Estrutura de módulos (alto nível)
 
@@ -143,8 +143,8 @@ npm run start:dev
 
 ## Roadmap / pendências
 
-Ver `TODO.md` para o detalhamento de features planejadas e `DECISIONS.md`
-para decisões de arquitetura já tomadas.
+Ver [TODO.md](./TODO.md) para o detalhamento de features planejadas e
+[DECISIONS.md](./DECISIONS.md) para decisões de arquitetura já tomadas.
 
 ## Projetos relacionados
 
