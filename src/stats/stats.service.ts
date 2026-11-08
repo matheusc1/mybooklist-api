@@ -151,7 +151,7 @@ export class StatsService {
   }
 
   private getMonthRange(month: string) {
-    if (!/^\d{4}-\d{2}$/.test(month)) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
       throw new BadRequestException('month must be in YYYY-MM format')
     }
 

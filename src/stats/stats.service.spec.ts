@@ -151,6 +151,30 @@ describe('StatsService', () => {
     expect(repository.findInRange).not.toHaveBeenCalled()
   })
 
+  it.each(['2026-13', '2026-00', '2026-99'])(
+    'rejects out-of-range month %s',
+    async (month) => {
+      await expect(service.monthlyStats('user-123', month)).rejects.toThrow(
+        new BadRequestException('month must be in YYYY-MM format'),
+      )
+      await expect(service.monthlyActivity('user-123', month)).rejects.toThrow(
+        BadRequestException,
+      )
+      expect(repository.findInRange).not.toHaveBeenCalled()
+      expect(repository.findMonthlyActivity).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    ['2026-01', '2026-01-01', '2026-01-31'],
+    ['2026-12', '2026-12-01', '2026-12-31'],
+  ])('accepts boundary month %s', async (month, start, end) => {
+    repository.findInRange.mockResolvedValue([])
+
+    await service.monthlyStats('user-123', month)
+    expect(repository.findInRange).toHaveBeenCalledWith('user-123', start, end)
+  })
+
   it('aggregates yearly sessions and pages read per month', async () => {
     repository.findInRange.mockResolvedValue([
       session('2025-01-01', 1, 10, 600),
