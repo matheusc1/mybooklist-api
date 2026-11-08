@@ -28,7 +28,7 @@ export const books = pgTable('books', {
   notes: text('notes'),
   coverUrl: text('cover_url'),
   totalPages: integer('total_pages').notNull(),
-  currentPage: integer('current_page').default(0),
+  currentPage: integer('current_page').notNull().default(0),
   status: statusEnum().notNull(),
   rating: integer('rating'),
   startedAt: date('started_at'),

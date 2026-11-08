@@ -1,0 +1,1 @@
+ALTER TABLE "books" ALTER COLUMN "current_page" SET NOT NULL;
