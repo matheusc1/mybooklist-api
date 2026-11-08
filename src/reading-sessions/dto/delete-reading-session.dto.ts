@@ -10,7 +10,9 @@ export class DeleteReadingSessionDto {
     example: false,
   })
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }: { value: unknown }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
   @IsBoolean()
   resetToPlanned?: boolean
 }
