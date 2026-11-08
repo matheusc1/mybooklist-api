@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { BooksRepository } from './books.repository'
 import { BooksService } from './books.service'
 import type { Book, NewBook } from './books.types'
+import { formatDate } from '@/common/format-date'
 
 describe('BooksService', () => {
   let service: BooksService
@@ -86,6 +87,8 @@ describe('BooksService', () => {
       totalPages: 300,
       currentPage: 300,
       status: 'completed',
+      startedAt: '2024-01-02',
+      completedAt: '2024-02-01',
     }
     repository.create.mockResolvedValue(mockBook)
 
@@ -192,6 +195,104 @@ describe('BooksService', () => {
     expect(repository.update).not.toHaveBeenCalled()
   })
 
+  it.each([
+    'title',
+    'author',
+    'genre',
+    'totalPages',
+    'currentPage',
+    'status',
+  ] as const)(
+    'rejects null %s on update before reaching the repository',
+    async (field) => {
+      await expect(
+        service.update('book-123', 'user-123', {
+          [field]: null,
+        }),
+      ).rejects.toThrow(BadRequestException)
+      expect(repository.findOne).not.toHaveBeenCalled()
+      expect(repository.update).not.toHaveBeenCalled()
+    },
+  )
+
+  it('allows null on nullable fields in update', async () => {
+    const updateData: Partial<NewBook> = {
+      coverUrl: null,
+      rating: null,
+      startedAt: null,
+      completedAt: null,
+    }
+    repository.findOne.mockResolvedValue(mockBook)
+    repository.update.mockResolvedValue(mockBook)
+
+    await expect(
+      service.update('book-123', 'user-123', updateData),
+    ).resolves.toEqual(mockBook)
+    expect(repository.update).toHaveBeenCalledWith('book-123', updateData)
+  })
+
+  it('rejects creating a book completed before it was started', async () => {
+    const data: NewBook = {
+      userId: 'user-123',
+      title: 'The Hobbit',
+      author: 'J. R. R. Tolkien',
+      genre: 'Fantasy',
+      totalPages: 300,
+      status: 'completed',
+      startedAt: '2024-02-01',
+      completedAt: '2024-01-15',
+    }
+
+    await expect(service.create(data)).rejects.toThrow(BadRequestException)
+    expect(repository.create).not.toHaveBeenCalled()
+  })
+
+  it('accepts a book started and completed on the same day', async () => {
+    const data: NewBook = {
+      userId: 'user-123',
+      title: 'The Hobbit',
+      author: 'J. R. R. Tolkien',
+      genre: 'Fantasy',
+      totalPages: 300,
+      status: 'completed',
+      startedAt: '2024-02-01',
+      completedAt: '2024-02-01',
+    }
+    repository.create.mockResolvedValue(mockBook)
+
+    await expect(service.create(data)).resolves.toEqual(mockBook)
+    expect(repository.create).toHaveBeenCalledWith(data)
+  })
+
+  it('checks a new completion date against the stored start date on update', async () => {
+    repository.findOne.mockResolvedValue(mockBook) // startedAt: 2024-01-02
+
+    await expect(
+      service.update('book-123', 'user-123', { completedAt: '2024-01-01' }),
+    ).rejects.toThrow(BadRequestException)
+    expect(repository.update).not.toHaveBeenCalled()
+  })
+
+  it('accepts a completion date after the stored start date on update', async () => {
+    const updateData: Partial<NewBook> = { completedAt: '2024-02-01' }
+    repository.findOne.mockResolvedValue(mockBook)
+    repository.update.mockResolvedValue({ ...mockBook, ...updateData })
+
+    await expect(
+      service.update('book-123', 'user-123', updateData),
+    ).resolves.toEqual({ ...mockBook, ...updateData })
+  })
+
+  it('allows clearing the start date even when a completion date is stored', async () => {
+    const completed = { ...mockBook, completedAt: '2024-02-01' }
+    repository.findOne.mockResolvedValue(completed)
+    repository.update.mockResolvedValue({ ...completed, startedAt: null })
+
+    await expect(
+      service.update('book-123', 'user-123', { startedAt: null }),
+    ).resolves.toEqual({ ...completed, startedAt: null })
+  })
+
   it('deletes an owned book after verifying ownership', async () => {
     repository.findOne.mockResolvedValue(mockBook)
     repository.delete.mockResolvedValue()
@@ -255,5 +356,72 @@ describe('BooksService', () => {
     repository.findAll.mockRejectedValue(new Error('lookup failed'))
 
     await expect(service.findAll('user-123')).rejects.toThrow('lookup failed')
+  })
+
+  describe('completion date default', () => {
+    beforeEach(() => {
+      jest.useFakeTimers().setSystemTime(new Date(2024, 5, 15, 12))
+    })
+    afterEach(() => jest.useRealTimers())
+
+    it('fills completedAt with today when creating a completed book without one', async () => {
+      const data: NewBook = {
+        userId: 'user-123',
+        title: 'The Hobbit',
+        author: 'J. R. R. Tolkien',
+        genre: 'Fantasy',
+        totalPages: 300,
+        currentPage: 300,
+        status: 'completed',
+      }
+      repository.create.mockResolvedValue(mockBook)
+
+      await service.create(data)
+      expect(repository.create).toHaveBeenCalledWith({
+        ...data,
+        completedAt: formatDate(new Date()),
+      })
+    })
+
+    it('keeps the given completedAt when creating a completed book', async () => {
+      const data: NewBook = {
+        userId: 'user-123',
+        title: 'The Hobbit',
+        author: 'J. R. R. Tolkien',
+        genre: 'Fantasy',
+        totalPages: 300,
+        status: 'completed',
+        completedAt: '2024-02-01',
+      }
+      repository.create.mockResolvedValue(mockBook)
+
+      await service.create(data)
+      expect(repository.create).toHaveBeenCalledWith(data)
+    })
+
+    it('fills completedAt when an update turns a book into completed', async () => {
+      repository.findOne.mockResolvedValue(mockBook) // completedAt: null
+      repository.update.mockResolvedValue(mockBook)
+
+      await service.update('book-123', 'user-123', { status: 'completed' })
+      expect(repository.update).toHaveBeenCalledWith('book-123', {
+        status: 'completed',
+        completedAt: formatDate(new Date()),
+      })
+    })
+
+    it('does not touch completedAt of an already completed book', async () => {
+      repository.findOne.mockResolvedValue({
+        ...mockBook,
+        status: 'completed',
+        completedAt: '2024-02-01',
+      })
+      repository.update.mockResolvedValue(mockBook)
+
+      await service.update('book-123', 'user-123', { notes: 'Great.' })
+      expect(repository.update).toHaveBeenCalledWith('book-123', {
+        notes: 'Great.',
+      })
+    })
   })
 })

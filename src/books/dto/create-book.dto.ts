@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
 import {
   IsString,
   IsInt,
@@ -7,23 +8,43 @@ import {
   IsUrl,
   IsEnum,
   IsDateString,
+  IsNotEmpty,
+  Matches,
   Min,
   Max,
   MaxLength,
+  ValidateIf,
 } from 'class-validator'
 import { statusEnum } from '@/database/schema/books.schema'
 
+const trim = ({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.trim() : value
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
+
 export class CreateBookDto {
-  @ApiProperty({ description: 'Book title.' })
+  @ApiProperty({ description: 'Book title.', maxLength: 255 })
+  @Transform(trim)
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   title: string
 
-  @ApiProperty({ description: 'Book author name.' })
+  @ApiProperty({ description: 'Book author name.', maxLength: 255 })
+  @Transform(trim)
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   author: string
 
-  @ApiProperty({ description: 'Primary genre or shelf label.' })
+  @ApiProperty({
+    description: 'Primary genre or shelf label.',
+    maxLength: 255,
+  })
+  @Transform(trim)
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   genre: string
 
   @ApiPropertyOptional({
@@ -42,18 +63,22 @@ export class CreateBookDto {
     description: 'Optional cover image URL. Null when no cover is set.',
     type: String,
     nullable: true,
+    maxLength: 2048,
   })
   @IsOptional()
   @IsUrl()
+  @MaxLength(2048)
   coverUrl?: string | null
 
   @ApiProperty({
     description: 'Total number of pages in the book.',
     minimum: 1,
+    maximum: 100000,
     example: 320,
   })
   @IsInt()
   @IsPositive()
+  @Max(100000)
   totalPages: number
 
   @ApiPropertyOptional({
@@ -62,7 +87,7 @@ export class CreateBookDto {
     minimum: 0,
     example: 0,
   })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsInt()
   @Min(0)
   currentPage?: number
@@ -93,7 +118,8 @@ export class CreateBookDto {
     example: '2026-08-31',
   })
   @IsOptional()
-  @IsDateString()
+  @Matches(DATE_ONLY, { message: 'startedAt must be in YYYY-MM-DD format' })
+  @IsDateString({ strict: true })
   startedAt?: string
 
   @ApiPropertyOptional({
@@ -102,6 +128,7 @@ export class CreateBookDto {
     example: '2026-09-15',
   })
   @IsOptional()
-  @IsDateString()
+  @Matches(DATE_ONLY, { message: 'completedAt must be in YYYY-MM-DD format' })
+  @IsDateString({ strict: true })
   completedAt?: string
 }
