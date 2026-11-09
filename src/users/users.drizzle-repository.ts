@@ -32,7 +32,7 @@ export class DrizzleUsersRepository extends UsersRepository {
     return existing
   }
 
-  async update(id: string, data: Partial<NewUser>): Promise<User> {
+  async update(id: string, data: Pick<NewUser, 'readingSpeed'>): Promise<User> {
     const [updated] = await this.db
       .update(users)
       .set(data)

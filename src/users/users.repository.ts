@@ -10,5 +10,8 @@ export abstract class UsersRepository {
 
   abstract create(data: NewUser): Promise<User>
 
-  abstract update(id: string, data: Partial<NewUser>): Promise<User>
+  abstract update(
+    id: string,
+    data: Pick<NewUser, 'readingSpeed'>,
+  ): Promise<User>
 }

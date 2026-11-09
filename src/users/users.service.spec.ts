@@ -75,7 +75,7 @@ describe('UsersService', () => {
   })
 
   it('updates a user through the repository', async () => {
-    const updateData: Partial<NewUser> = { readingSpeed: 120 }
+    const updateData: Pick<NewUser, 'readingSpeed'> = { readingSpeed: 120 }
     const updatedUser = { ...mockUser, readingSpeed: 120 }
     repository.update.mockResolvedValue(updatedUser)
 

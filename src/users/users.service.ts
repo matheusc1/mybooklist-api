@@ -21,7 +21,7 @@ export class UsersService {
     return this.repository.create(data)
   }
 
-  async update(id: string, data: Partial<NewUser>): Promise<User> {
+  async update(id: string, data: Pick<NewUser, 'readingSpeed'>): Promise<User> {
     return this.repository.update(id, data)
   }
 }

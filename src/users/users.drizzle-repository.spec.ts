@@ -153,7 +153,7 @@ describe('DrizzleUsersRepository', () => {
 
   describe('update', () => {
     it('updates an existing user', async () => {
-      const updateData: Partial<NewUser> = { readingSpeed: 120 }
+      const updateData: Pick<NewUser, 'readingSpeed'> = { readingSpeed: 120 }
       const updatedUser = { ...mockUser, readingSpeed: 120 }
       const updateQuery = {
         set: jest.fn().mockReturnThis(),
