@@ -151,6 +151,17 @@ describe('ReadingSessionsService', () => {
     )
   })
 
+  it.each(['fromPage', 'toPage', 'readAt'] as const)(
+    'rejects null %s on update before reaching the repository',
+    async (field) => {
+      await expect(
+        service.update('session-123', user, { [field]: null }),
+      ).rejects.toThrow(BadRequestException)
+      expect(repository.findOne).not.toHaveBeenCalled()
+      expect(repository.update).not.toHaveBeenCalled()
+    },
+  )
+
   it('does not update a session that the user cannot access', async () => {
     repository.findOne.mockResolvedValue(undefined)
 

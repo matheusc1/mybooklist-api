@@ -8,6 +8,14 @@ import { ReadingSessionsRepository } from './reading-sessions.repository'
 import type { NewReadingSession } from './reading-sessions.types'
 import type { User } from '@/users/users.types'
 
+type ReadingSessionUpdate = Partial<
+  Pick<NewReadingSession, 'fromPage' | 'toPage' | 'readAt'>
+>
+
+// PartialType makes every DTO field optional, and @IsOptional() also lets
+// an explicit null through. These columns are NOT NULL, so null is rejected here.
+const NON_NULLABLE_FIELDS = ['fromPage', 'toPage', 'readAt'] as const
+
 @Injectable()
 export class ReadingSessionsService {
   constructor(
@@ -46,11 +54,8 @@ export class ReadingSessionsService {
     )
   }
 
-  async update(
-    id: string,
-    user: User,
-    session: Partial<Pick<NewReadingSession, 'fromPage' | 'toPage' | 'readAt'>>,
-  ) {
+  async update(id: string, user: User, session: ReadingSessionUpdate) {
+    this.assertNoNullRequiredFields(session)
     const existing = await this.findOne(id, user.id)
     const book = await this.booksService.findOne(existing.bookId, user.id)
     const fromPage = session.fromPage ?? existing.fromPage
@@ -70,6 +75,14 @@ export class ReadingSessionsService {
   async delete(id: string, userId: string, resetToPlanned = false) {
     await this.findOne(id, userId)
     return this.repository.delete(id, resetToPlanned)
+  }
+
+  private assertNoNullRequiredFields(session: ReadingSessionUpdate) {
+    for (const field of NON_NULLABLE_FIELDS) {
+      if (session[field] === null) {
+        throw new BadRequestException(`${field} cannot be null.`)
+      }
+    }
   }
 
   private calculateDuration(

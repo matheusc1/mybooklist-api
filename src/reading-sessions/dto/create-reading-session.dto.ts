@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsUUID, IsInt, Min, IsOptional, IsDateString } from 'class-validator'
+import {
+  IsUUID,
+  IsInt,
+  Min,
+  IsDateString,
+  Matches,
+  ValidateIf,
+} from 'class-validator'
 
 export class CreateReadingSessionDto {
   @ApiProperty({ description: 'Book identifier the session belongs to.' })
@@ -29,7 +36,10 @@ export class CreateReadingSessionDto {
     format: 'date',
     example: '2026-08-30',
   })
-  @IsOptional()
-  @IsDateString()
+  @ValidateIf((_, value) => value !== undefined)
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'readAt must be in YYYY-MM-DD format',
+  })
+  @IsDateString({ strict: true })
   readAt?: string
 }
