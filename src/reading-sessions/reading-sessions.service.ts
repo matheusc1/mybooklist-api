@@ -60,15 +60,20 @@ export class ReadingSessionsService {
     const book = await this.booksService.findOne(existing.bookId, user.id)
     const fromPage = session.fromPage ?? existing.fromPage
     const toPage = session.toPage ?? existing.toPage
+    const duration = this.calculateDuration(
+      fromPage,
+      toPage,
+      user.readingSpeed,
+      book.totalPages,
+    )
+    // The duration is a historical record based on the reading speed at the
+    // time of the session. It is only recalculated when the pages change.
+    const pagesChanged =
+      session.fromPage !== undefined || session.toPage !== undefined
     return this.repository.update(
       id,
       session,
-      this.calculateDuration(
-        fromPage,
-        toPage,
-        user.readingSpeed,
-        book.totalPages,
-      ),
+      pagesChanged ? duration : existing.durationSeconds,
     )
   }
 

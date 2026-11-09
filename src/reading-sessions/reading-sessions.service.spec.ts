@@ -162,6 +162,36 @@ describe('ReadingSessionsService', () => {
     },
   )
 
+  it('keeps the stored duration when only readAt changes', async () => {
+    const fasterUser = { ...user, readingSpeed: 120 } as User
+    repository.findOne.mockResolvedValue(session) // durationSeconds: 600
+    booksService.findOne.mockResolvedValue(book)
+    repository.update.mockResolvedValue(session)
+
+    await service.update('session-123', fasterUser, { readAt: '2026-09-02' })
+
+    expect(repository.update).toHaveBeenCalledWith(
+      'session-123',
+      { readAt: '2026-09-02' },
+      600,
+    )
+  })
+
+  it('recalculates the duration when the pages change', async () => {
+    const fasterUser = { ...user, readingSpeed: 120 } as User
+    repository.findOne.mockResolvedValue(session) // 10 to 19
+    booksService.findOne.mockResolvedValue(book)
+    repository.update.mockResolvedValue(session)
+
+    await service.update('session-123', fasterUser, { toPage: 20 })
+
+    expect(repository.update).toHaveBeenCalledWith(
+      'session-123',
+      { toPage: 20 },
+      1320,
+    )
+  })
+
   it('does not update a session that the user cannot access', async () => {
     repository.findOne.mockResolvedValue(undefined)
 
