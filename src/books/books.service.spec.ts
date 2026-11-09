@@ -145,7 +145,9 @@ describe('BooksService', () => {
   })
 
   it('updates an owned book when the resulting progress is valid', async () => {
-    const updateData: Partial<NewBook> = { currentPage: 100 }
+    const updateData: Partial<Omit<NewBook, 'userId' | 'id'>> = {
+      currentPage: 100,
+    }
     const updatedBook = { ...mockBook, currentPage: 100 }
     repository.findOne.mockResolvedValue(mockBook)
     repository.update.mockResolvedValue(updatedBook)
@@ -158,7 +160,9 @@ describe('BooksService', () => {
   })
 
   it('updates or clears free-form notes on an owned book', async () => {
-    const updateData: Partial<NewBook> = { notes: 'Updated notes.' }
+    const updateData: Partial<Omit<NewBook, 'userId' | 'id'>> = {
+      notes: 'Updated notes.',
+    }
     const updatedBook = { ...mockBook, ...updateData }
     repository.findOne.mockResolvedValue(mockBook)
     repository.update.mockResolvedValue(updatedBook)
@@ -216,7 +220,7 @@ describe('BooksService', () => {
   )
 
   it('allows null on nullable fields in update', async () => {
-    const updateData: Partial<NewBook> = {
+    const updateData: Partial<Omit<NewBook, 'userId' | 'id'>> = {
       coverUrl: null,
       rating: null,
       startedAt: null,
@@ -274,7 +278,9 @@ describe('BooksService', () => {
   })
 
   it('accepts a completion date after the stored start date on update', async () => {
-    const updateData: Partial<NewBook> = { completedAt: '2024-02-01' }
+    const updateData: Partial<Omit<NewBook, 'userId' | 'id'>> = {
+      completedAt: '2024-02-01',
+    }
     repository.findOne.mockResolvedValue(mockBook)
     repository.update.mockResolvedValue({ ...mockBook, ...updateData })
 

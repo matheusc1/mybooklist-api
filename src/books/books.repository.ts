@@ -8,7 +8,10 @@ export abstract class BooksRepository {
 
   abstract create(book: NewBook): Promise<Book>
 
-  abstract update(id: string, book: Partial<NewBook>): Promise<Book | undefined>
+  abstract update(
+    id: string,
+    book: Partial<Omit<NewBook, 'userId' | 'id'>>,
+  ): Promise<Book | undefined>
 
   abstract delete(id: string): Promise<void>
 

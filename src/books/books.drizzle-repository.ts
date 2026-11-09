@@ -26,7 +26,7 @@ export class DrizzleBooksRepository extends BooksRepository {
     return created
   }
 
-  async update(id: string, book: Partial<NewBook>) {
+  async update(id: string, book: Partial<Omit<NewBook, 'userId' | 'id'>>) {
     const [updated] = await this.db
       .update(books)
       .set(book)

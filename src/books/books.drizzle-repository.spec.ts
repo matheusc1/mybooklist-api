@@ -101,7 +101,9 @@ describe('DrizzleBooksRepository', () => {
   })
 
   it('updates a book by id and returns the updated row', async () => {
-    const updateData: Partial<NewBook> = { currentPage: 100 }
+    const updateData: Partial<Omit<NewBook, 'userId' | 'id'>> = {
+      currentPage: 100,
+    }
     const updateQuery = {
       set: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),

@@ -42,7 +42,11 @@ export class BooksService {
     return this.repository.create(data)
   }
 
-  async update(id: string, userId: string, book: Partial<NewBook>) {
+  async update(
+    id: string,
+    userId: string,
+    book: Partial<Omit<NewBook, 'userId' | 'id'>>,
+  ) {
     this.assertNoNullRequiredFields(book)
     const existing = await this.findOne(id, userId)
     this.assertPageWithinTotal(
@@ -88,7 +92,9 @@ export class BooksService {
     return this.repository.findCompletedByYear(userId, year)
   }
 
-  private assertNoNullRequiredFields(book: Partial<NewBook>) {
+  private assertNoNullRequiredFields(
+    book: Partial<Omit<NewBook, 'userId' | 'id'>>,
+  ) {
     for (const field of NON_NULLABLE_FIELDS) {
       if (book[field] === null) {
         throw new BadRequestException(`${field} cannot be null.`)
