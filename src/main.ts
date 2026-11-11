@@ -8,6 +8,7 @@ import { apiReference } from '@scalar/nestjs-api-reference'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  app.useSecurityHeaders({ contentSecurityPolicy: false })
   app.enableShutdownHooks()
   app.use(cookieParser())
   app.useGlobalPipes(
