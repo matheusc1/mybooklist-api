@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseUUIDPipe,
   Post,
   Res,
 } from '@nestjs/common'
@@ -18,7 +19,7 @@ import { DATABASE_CONNECTION } from '@/database/database-connection'
 import type { Database } from '@/database/database.types'
 import { users } from '@/database/schema/users.schema'
 import { UsersService } from '@/users/users.service'
-import { eq } from 'drizzle-orm'
+import { and, eq, like } from 'drizzle-orm'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
@@ -62,7 +63,9 @@ export class TestController {
   @Delete('users/:id')
   @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUser(@Param('id') id: string) {
-    await this.db.delete(users).where(eq(users.id, id))
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
+    await this.db
+      .delete(users)
+      .where(and(eq(users.id, id), like(users.email, 'e2e-%@example.com')))
   }
 }
