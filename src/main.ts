@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core'
+import type { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
 import cookieParser from 'cookie-parser'
 import { ValidationPipe } from '@nestjs/common'
@@ -6,9 +7,17 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   app.useSecurityHeaders({ contentSecurityPolicy: false })
+
+  // Behind the hosting proxy, req.ip is the proxy address, and every client
+  // would share a single rate limit counter. The number is how many proxies
+  // sit in front of the app.
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1)
+  }
+
   app.enableShutdownHooks()
   app.use(cookieParser())
   app.useGlobalPipes(

@@ -19,6 +19,7 @@ import {
   ApiFoundResponse,
   ApiCookieAuth,
 } from '@nestjs/swagger'
+import { Throttle, minutes } from '@nestjs/throttler'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { AuthService } from './auth.service'
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter'
@@ -30,6 +31,10 @@ import { GithubAuthGuard } from './guards/github-auth.guard'
 import { PublicUserDto } from '../users/dto/public-user.dto'
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
+
+// Stricter than the global limit. Applied only to the OAuth flow routes:
+// /auth/me runs on every page load and stays under the global limit.
+const OAUTH_THROTTLE = { default: { limit: 20, ttl: minutes(1) } }
 
 @ApiTags('auth')
 @Controller('auth')
@@ -56,6 +61,7 @@ export class AuthController {
   @ApiFoundResponse({ description: 'Redirects to Google.' })
   @Get('google')
   @Public()
+  @Throttle(OAUTH_THROTTLE)
   @UseGuards(GoogleAuthGuard)
   googleLogin() {}
 
@@ -67,6 +73,7 @@ export class AuthController {
   @ApiFoundResponse({ description: 'Redirects to the frontend app.' })
   @Get('google/callback')
   @Public()
+  @Throttle(OAUTH_THROTTLE)
   @UseGuards(GoogleAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
@@ -81,6 +88,7 @@ export class AuthController {
   @ApiFoundResponse({ description: 'Redirects to GitHub.' })
   @Get('github')
   @Public()
+  @Throttle(OAUTH_THROTTLE)
   @UseGuards(GithubAuthGuard)
   githubLogin() {}
 
@@ -92,6 +100,7 @@ export class AuthController {
   @ApiFoundResponse({ description: 'Redirects to the frontend app.' })
   @Get('github/callback')
   @Public()
+  @Throttle(OAUTH_THROTTLE)
   @UseGuards(GithubAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   async githubCallback(@Req() req: Request, @Res() res: Response) {
