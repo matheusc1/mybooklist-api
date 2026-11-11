@@ -5,6 +5,19 @@ import { Strategy, type Profile } from 'passport-github2'
 import type { OAuthProfile } from '../auth.types'
 import { CookieStateStore } from '../oauth-state.store'
 
+type GithubEmail = { value: string; primary?: boolean; verified?: boolean }
+
+// With the user:email scope GitHub returns every address of the account, in no
+// guaranteed order. Prefer the primary verified one. The email is profile data
+// only: accounts are identified by (provider, providerId), never by email.
+function pickEmail(emails: GithubEmail[] = []) {
+  return (
+    emails.find((email) => email.primary && email.verified) ??
+    emails.find((email) => email.verified) ??
+    emails[0]
+  )?.value
+}
+
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(configService: ConfigService) {
@@ -23,12 +36,12 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     profile: Profile,
     done: (err: Error | null, user?: OAuthProfile) => void,
   ) {
-    const { id, displayName, emails, photos } = profile
-    const email = emails?.[0]?.value
+    const { id, displayName, username, emails, photos } = profile
+    const email = pickEmail(emails)
 
     if (!email) {
       return done(
-        new UnauthorizedException('Github account has no public email.'),
+        new UnauthorizedException('GitHub account has no email address.'),
         undefined,
       )
     }
@@ -37,7 +50,8 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       providerId: id,
       provider: 'github',
       email,
-      name: displayName,
+      // The GitHub profile name is optional, and users.name is NOT NULL.
+      name: displayName || username || email,
       avatarUrl: photos?.[0]?.value,
     } satisfies OAuthProfile
 
