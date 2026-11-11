@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { UsersService } from '@/users/users.service'
 import { JwtStrategy } from './jwt.strategy'
+import { UnauthorizedException } from '@nestjs/common'
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy
@@ -33,6 +34,16 @@ describe('JwtStrategy', () => {
     await expect(strategy.validate({ sub: 'user-123' })).resolves.toEqual(user)
     expect(usersService.findById).toHaveBeenCalledWith('user-123')
   })
+
+  it.each([undefined, ''])(
+    'rejects a token without a usable subject (%p)',
+    async (sub) => {
+      await expect(strategy.validate({ sub })).rejects.toThrow(
+        new UnauthorizedException('Invalid token.'),
+      )
+      expect(usersService.findById).not.toHaveBeenCalled()
+    },
+  )
 
   it('rejects a token whose user no longer exists', async () => {
     usersService.findById.mockResolvedValue(undefined)
