@@ -15,6 +15,7 @@ import { HealthModule } from './health/health.module'
 import { TestModule } from './test/test.module'
 import { BookDetailsModule } from './book-details/book-details.module'
 import { YearlyOverviewModule } from './yearly-overview/yearly-overview.module'
+import { isTestModeEnabled } from './test/test-mode'
 
 @Module({
   imports: [
@@ -35,10 +36,7 @@ import { YearlyOverviewModule } from './yearly-overview/yearly-overview.module'
     ActivityModule,
     YearlyOverviewModule,
     HealthModule,
-    ...(process.env.E2E_TEST_MODE === 'true' &&
-    process.env.NODE_ENV !== 'production'
-      ? [TestModule]
-      : []),
+    ...(isTestModeEnabled() ? [TestModule] : []),
   ],
   providers: [
     // Global guards run in this order: the rate limit comes first, so a
