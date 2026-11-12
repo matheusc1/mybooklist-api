@@ -62,7 +62,7 @@ export async function seedUser(
   return repository.create({
     provider: 'google',
     providerId: `e2e-${suffix}-${Date.now()}-${Math.random()}`,
-    email: `${suffix}-${Date.now()}@example.com`,
+    email: `e2e-${suffix}-${Date.now()}@example.com`,
     name: `E2E ${suffix}`,
     avatarUrl: null,
     readingSpeed: 60,
