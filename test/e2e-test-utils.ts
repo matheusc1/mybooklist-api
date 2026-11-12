@@ -12,6 +12,8 @@ import { users } from '@/database/schema/users.schema'
 import { eq } from 'drizzle-orm'
 import { AppModule } from '@/app.module'
 
+const regularDatabaseUrl = process.env.DATABASE_URL
+
 export async function createE2eApp(): Promise<{
   app: INestApplication
   database: Database
@@ -21,6 +23,10 @@ export async function createE2eApp(): Promise<{
 
   if (!databaseUrl || !jwtSecret) {
     throw new Error('E2E tests require TEST_DATABASE_URL and TEST_JWT_SECRET.')
+  }
+
+  if (regularDatabaseUrl === databaseUrl) {
+    throw new Error('TEST_DATABASE_URL must not be the same as DATABASE_URL.')
   }
 
   process.env.DATABASE_URL = databaseUrl
