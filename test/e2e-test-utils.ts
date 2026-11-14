@@ -12,6 +12,7 @@ import { users } from '@/database/schema/users.schema'
 import { eq } from 'drizzle-orm'
 import { AppModule } from '@/app.module'
 
+export const E2E_FRONTEND_URL = 'http://localhost:5173'
 const regularDatabaseUrl = process.env.DATABASE_URL
 
 export async function createE2eApp(): Promise<{
@@ -31,7 +32,7 @@ export async function createE2eApp(): Promise<{
 
   process.env.DATABASE_URL = databaseUrl
   process.env.JWT_SECRET = jwtSecret
-  process.env.FRONTEND_URL = 'http://localhost:5173'
+  process.env.FRONTEND_URL = E2E_FRONTEND_URL
   process.env.GOOGLE_CLIENT_ID = 'e2e-google-client'
   process.env.GOOGLE_CLIENT_SECRET = 'e2e-google-secret'
   process.env.GOOGLE_CALLBACK_URL = 'http://localhost:3000/auth/google/callback'

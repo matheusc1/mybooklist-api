@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
+import { getFrontendUrl } from './common/frontend-url'
 import cookieParser from 'cookie-parser'
 import { ValidationPipe } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
@@ -28,8 +29,10 @@ async function bootstrap() {
     }),
   )
 
+  // Throws in production when FRONTEND_URL is missing, so the app refuses to
+  // start instead of allowing the wrong origin.
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    origin: getFrontendUrl(),
     credentials: true,
   })
 

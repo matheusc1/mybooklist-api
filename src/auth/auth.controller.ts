@@ -20,6 +20,7 @@ import {
   ApiCookieAuth,
 } from '@nestjs/swagger'
 import { Throttle, minutes } from '@nestjs/throttler'
+import { getFrontendUrl } from '@/common/frontend-url'
 import { GoogleAuthGuard } from './guards/google-auth.guard'
 import { AuthService } from './auth.service'
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter'
@@ -142,6 +143,6 @@ export class AuthController {
       maxAge: COOKIE_MAX_AGE,
     })
 
-    res.redirect(`${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/home`)
+    res.redirect(`${getFrontendUrl()}/home`)
   }
 }

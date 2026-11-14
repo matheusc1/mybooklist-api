@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import request, { type Response } from 'supertest'
 import { Logger, type INestApplication } from '@nestjs/common'
-import { createE2eApp, deleteUser } from './e2e-test-utils'
+import { createE2eApp, deleteUser, E2E_FRONTEND_URL } from './e2e-test-utils'
 import { GoogleStrategy } from '@/auth/strategies/google.strategy'
 import { GithubStrategy } from '@/auth/strategies/github.strategy'
 import { UsersService } from '@/users/users.service'
@@ -21,7 +21,7 @@ type StrategyInternals = {
   userProfile: (accessToken: string, done: Callback) => void
 }
 
-const FRONTEND = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+const FRONTEND = E2E_FRONTEND_URL
 const LOGIN_FAILED = `${FRONTEND}/login?error=oauth_failed`
 
 describe.each([

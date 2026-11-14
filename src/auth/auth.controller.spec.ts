@@ -118,6 +118,22 @@ describe('AuthController', () => {
     expect(response.redirect).toHaveBeenCalledWith('http://localhost:5173/home')
   })
 
+  it('does not produce a double slash when FRONTEND_URL ends with one', async () => {
+    process.env.FRONTEND_URL = 'https://app.example.com/'
+    authService.authenticateOAuth.mockResolvedValue(user)
+    authService.generateToken.mockReturnValue('signed-token')
+    const response = { cookie: jest.fn(), redirect: jest.fn() }
+
+    await controller.googleCallback(
+      { user: profile } as never,
+      response as never,
+    )
+
+    expect(response.redirect).toHaveBeenCalledWith(
+      'https://app.example.com/home',
+    )
+  })
+
   it('rejects an OAuth callback when authentication returns no user', async () => {
     authService.authenticateOAuth.mockResolvedValue(undefined as never)
     const response = { cookie: jest.fn(), redirect: jest.fn() }

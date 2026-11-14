@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import type { Response } from 'express'
+import { getFrontendUrl } from '@/common/frontend-url'
 
 @Catch()
 export class OAuthExceptionFilter implements ExceptionFilter {
@@ -13,7 +14,7 @@ export class OAuthExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>()
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+    const frontendUrl = getFrontendUrl()
 
     // Expected failures (cancel, no email, bad state) are not worth a log line.
     if (!(exception instanceof UnauthorizedException)) {

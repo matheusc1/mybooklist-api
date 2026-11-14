@@ -33,6 +33,17 @@ describe('OAuthExceptionFilter', () => {
     )
   })
 
+  it('does not produce a double slash when the configured URL ends with one', () => {
+    process.env.FRONTEND_URL = 'https://app.example.com/'
+    const { response, host } = makeHost()
+
+    new OAuthExceptionFilter().catch(new UnauthorizedException(), host)
+
+    expect(response.redirect).toHaveBeenCalledWith(
+      'https://app.example.com/login?error=oauth_failed',
+    )
+  })
+
   it('uses the local frontend URL when none is configured', () => {
     const { response, host } = makeHost()
 
