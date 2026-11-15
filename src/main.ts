@@ -1,9 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
-import { getFrontendUrl } from './common/frontend-url'
-import cookieParser from 'cookie-parser'
-import { ValidationPipe } from '@nestjs/common'
+import { configureApp } from './configure-app'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
 
@@ -20,21 +18,7 @@ async function bootstrap() {
   }
 
   app.enableShutdownHooks()
-  app.use(cookieParser())
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  )
-
-  // Throws in production when FRONTEND_URL is missing, so the app refuses to
-  // start instead of allowing the wrong origin.
-  app.enableCors({
-    origin: getFrontendUrl(),
-    credentials: true,
-  })
+  configureApp(app)
 
   const config = new DocumentBuilder()
     .setTitle('MyBookList API')
