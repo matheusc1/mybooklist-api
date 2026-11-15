@@ -82,72 +82,65 @@ describe('DrizzleUsersRepository', () => {
   })
 
   describe('create', () => {
-    it('creates a user when the insert succeeds', async () => {
-      const data: NewUser = {
-        provider: 'github',
-        providerId: 'github-456',
-        email: 'github-user@example.com',
-        name: 'Github User',
-        avatarUrl: null,
-        readingSpeed: null,
-      }
-      const insertQuery = {
-        values: jest.fn().mockReturnThis(),
-        onConflictDoNothing: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([mockUser]),
-      }
+    const data: NewUser = {
+      provider: 'google',
+      providerId: 'google-123',
+      email: 'user@example.com',
+      name: 'Test User',
+      avatarUrl: 'https://example.com/avatar.png',
+      readingSpeed: 90,
+    }
+
+    const makeInsertQuery = (rows: User[]) => ({
+      values: jest.fn().mockReturnThis(),
+      onConflictDoUpdate: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockResolvedValue(rows),
+    })
+
+    it('inserts the user and returns the row', async () => {
+      const insertQuery = makeInsertQuery([mockUser])
       db.insert.mockReturnValue(insertQuery)
 
       await expect(repository.create(data)).resolves.toEqual(mockUser)
       expect(db.insert).toHaveBeenCalledTimes(1)
-      expect(insertQuery.onConflictDoNothing).toHaveBeenCalledWith({
+      expect(insertQuery.values).toHaveBeenCalledWith(data)
+    })
+
+    it('refreshes only the provider profile fields when the account already exists', async () => {
+      const insertQuery = makeInsertQuery([mockUser])
+      db.insert.mockReturnValue(insertQuery)
+
+      await repository.create(data)
+
+      // readingSpeed is not in the update set, so it is never overwritten.
+      expect(insertQuery.onConflictDoUpdate).toHaveBeenCalledWith({
         target: [users.provider, users.providerId],
+        set: {
+          email: data.email,
+          name: data.name,
+          avatarUrl: data.avatarUrl,
+        },
       })
     })
 
-    it('reuses the existing user when the insert conflicts and the user already exists', async () => {
-      const data: NewUser = {
-        provider: 'google',
-        providerId: 'google-123',
-        email: 'user@example.com',
-        name: 'Test User',
-        avatarUrl: 'https://example.com/avatar.png',
-        readingSpeed: 90,
-      }
-      const insertQuery = {
-        values: jest.fn().mockReturnThis(),
-        onConflictDoNothing: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([]),
-      }
-      db.insert.mockReturnValue(insertQuery)
-      db.query.users.findFirst.mockResolvedValue(mockUser)
+    it('returns the refreshed row for a repeated login', async () => {
+      const refreshed = { ...mockUser, name: 'New Name' }
+      db.insert.mockReturnValue(makeInsertQuery([refreshed]))
 
-      await expect(repository.create(data)).resolves.toEqual(mockUser)
-      expect(db.query.users.findFirst).toHaveBeenCalledWith({
-        where: { provider: data.provider, providerId: data.providerId },
-      })
+      await expect(
+        repository.create({ ...data, name: 'New Name' }),
+      ).resolves.toEqual(refreshed)
     })
 
-    it('throws an error when the create operation cannot return a row and no existing user is found', async () => {
-      const data: NewUser = {
-        provider: 'google',
-        providerId: 'google-456',
-        email: 'new-user@example.com',
-        name: 'New User',
-        avatarUrl: null,
-        readingSpeed: null,
-      }
+    it('propagates insert errors', async () => {
       const insertQuery = {
         values: jest.fn().mockReturnThis(),
-        onConflictDoNothing: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([]),
+        onConflictDoUpdate: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockRejectedValue(new Error('insert failed')),
       }
       db.insert.mockReturnValue(insertQuery)
-      db.query.users.findFirst.mockResolvedValue(undefined)
 
-      await expect(repository.create(data)).rejects.toThrow(
-        'Failed to create or retrieve user',
-      )
+      await expect(repository.create(data)).rejects.toThrow('insert failed')
     })
   })
 

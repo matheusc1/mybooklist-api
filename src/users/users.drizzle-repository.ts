@@ -24,12 +24,16 @@ export class DrizzleUsersRepository extends UsersRepository {
     const [user] = await this.db
       .insert(users)
       .values(data)
-      .onConflictDoNothing({ target: [users.provider, users.providerId] })
+      .onConflictDoUpdate({
+        target: [users.provider, users.providerId],
+        set: {
+          email: data.email,
+          name: data.name,
+          avatarUrl: data.avatarUrl,
+        },
+      })
       .returning()
-    if (user) return user
-    const existing = await this.findByProvider(data.provider, data.providerId)
-    if (!existing) throw new Error('Failed to create or retrieve user')
-    return existing
+    return user
   }
 
   async update(id: string, data: Pick<NewUser, 'readingSpeed'>): Promise<User> {
