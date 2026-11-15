@@ -30,8 +30,7 @@ import { toPublicUser } from '@/users/users.mapper'
 import type { User } from '@/users/users.types'
 import { GithubAuthGuard } from './guards/github-auth.guard'
 import { PublicUserDto } from '../users/dto/public-user.dto'
-
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
+import { SESSION_DURATION_MS } from './auth.constants'
 
 // Stricter than the global limit. Applied only to the OAuth flow routes:
 // /auth/me runs on every page load and stays under the global limit.
@@ -140,7 +139,7 @@ export class AuthController {
 
     res.cookie('access_token', token, {
       ...this.cookieOptions,
-      maxAge: COOKIE_MAX_AGE,
+      maxAge: SESSION_DURATION_MS,
     })
 
     res.redirect(`${getFrontendUrl()}/home`)

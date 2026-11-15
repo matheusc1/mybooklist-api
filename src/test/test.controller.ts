@@ -20,8 +20,7 @@ import type { Database } from '@/database/database.types'
 import { users } from '@/database/schema/users.schema'
 import { UsersService } from '@/users/users.service'
 import { and, eq, like } from 'drizzle-orm'
-
-const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
+import { SESSION_DURATION_MS } from '@/auth/auth.constants'
 
 @Controller('test')
 export class TestController {
@@ -54,7 +53,7 @@ export class TestController {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
-      maxAge: COOKIE_MAX_AGE,
+      maxAge: SESSION_DURATION_MS,
     })
 
     return user

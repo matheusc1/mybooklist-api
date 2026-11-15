@@ -8,6 +8,7 @@ import { AuthService } from './auth.service'
 import { GoogleStrategy } from './strategies/google.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { GithubStrategy } from './strategies/github.strategy'
+import { SESSION_DURATION_SECONDS } from './auth.constants'
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { GithubStrategy } from './strategies/github.strategy'
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' },
+        signOptions: { expiresIn: SESSION_DURATION_SECONDS },
       }),
     }),
   ],
