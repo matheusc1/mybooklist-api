@@ -50,11 +50,8 @@ describe('CreateReadingSessionDto', () => {
     expect(hasErrorOn(errors, field)).toBe(true)
   })
 
-  it.each(['fromPage', 'toPage'])(
-    'rejects a non-integer %s',
-    async (field) => {
-      const errors = await check({ [field]: 1.5 })
-      expect(hasErrorOn(errors, field)).toBe(true)
-    },
-  )
+  it.each(['fromPage', 'toPage'])('rejects a non-integer %s', async (field) => {
+    const errors = await check({ [field]: 1.5 })
+    expect(hasErrorOn(errors, field)).toBe(true)
+  })
 })
