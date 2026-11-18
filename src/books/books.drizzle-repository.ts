@@ -5,6 +5,7 @@ import type { Database, Transaction } from '@/database/database.types'
 import { books } from '@/database/schema/books.schema'
 import type { NewBook } from './books.types'
 import { BooksRepository } from './books.repository'
+import { deriveProgress } from './book-progress'
 import { formatDate } from '@/common/format-date'
 
 @Injectable()
@@ -77,22 +78,9 @@ export class DrizzleBooksRepository extends BooksRepository {
   async syncProgress(tx: Transaction, bookId: string, currentPage: number) {
     const book = await tx.query.books.findFirst({ where: { id: bookId } })
     if (!book) throw new NotFoundException(`Book with id ${bookId} not found`)
-    const completed = currentPage >= book.totalPages
-    const status = completed
-      ? 'completed'
-      : currentPage > 0
-        ? 'reading'
-        : book.status
-    const startedAt =
-      (status === 'reading' || completed) && !book.startedAt
-        ? formatDate(new Date())
-        : book.startedAt
-    const completedAt = completed
-      ? (book.completedAt ?? formatDate(new Date()))
-      : null
     const [updated] = await tx
       .update(books)
-      .set({ currentPage, status, startedAt, completedAt })
+      .set(deriveProgress(book, currentPage, formatDate(new Date())))
       .where(eq(books.id, book.id))
       .returning()
     return updated

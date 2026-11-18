@@ -30,8 +30,8 @@ sociais) — cenário não previsto no escopo atual do produto.
   (`durationSeconds` fica `0`, sentinela de "não calculado").
 - Sessões de leitura podem se sobrepor livremente (ver ADR 005).
 - Update manual de `currentPage`/`startedAt`/`completedAt` não é derivado
-  nem corrigido pelo sistema, salvo as duas regras de coerência do ADR 003
-  (ordem das datas e `completedAt` de livro concluído).
+  nem corrigido pelo sistema, salvo as regras de coerência do ADR 003
+  (ordem das datas e relação entre `completedAt` e `status`).
 
 ---
 
@@ -78,23 +78,26 @@ para `neon-serverless` (`Pool` via WebSocket).
 datas de início/conclusão acompanhassem o progresso automaticamente.
 
 **Decisão:** `syncProgress` busca o livro atual e recalcula os três campos
-juntos a partir de `currentPage` vs `totalPages`:
+juntos a partir de `currentPage` vs `totalPages`, na função pura
+`deriveProgress` (`src/books/book-progress.ts`):
 
 ```ts
-const isCompleted = currentPage >= book.totalPages
+const completed = currentPage >= book.totalPages
 
-const status = isCompleted
+const status = completed
   ? 'completed'
   : currentPage > 0
     ? 'reading'
-    : book.status
+    : book.status === 'completed'
+      ? 'planned'
+      : book.status
 
 const startedAt =
-  (status === 'reading' || isCompleted) && !book.startedAt
+  (status === 'reading' || completed) && !book.startedAt
     ? hoje
     : book.startedAt
 
-const completedAt = isCompleted
+const completedAt = completed
   ? (book.completedAt ?? hoje)
   : null
 ```
@@ -104,6 +107,9 @@ Regras:
   anterior (inclusive `dropped`/`paused` setados manualmente). Uma reading
   session é a ação mais recente e tem autoridade para recalcular o status,
   mesma lógica do ADR 002 para `currentPage`.
+- Progresso 0 em livro `completed` volta o status para `planned`: um livro
+  concluído sem nenhuma página lida seria incoerente. `startedAt` é mantido
+  e os outros status não mudam com progresso 0.
 - `startedAt` só é preenchido se ainda `null`, cobrindo inclusive o caso de
   o livro pular direto de `planned` para `completed` numa única sessão.
 - `syncProgress` mantém a invariante `status === 'completed' ⟺ completedAt
@@ -123,12 +129,17 @@ condição para não depender do status anterior específico.
 
 **Caminhos manuais (criação e edição do livro):** a derivação acima só roda
 quando uma reading session muda o progresso. Na criação e no PATCH do livro o
-sistema não deriva nada, mas aplica duas regras de coerência em
+sistema não deriva nada, mas aplica três regras de coerência em
 `BooksService`:
 - `completedAt` anterior a `startedAt` é recusado com 400. No update, o valor
   novo é combinado com o que já está salvo antes de comparar.
 - Livro com `status = completed` e sem `completedAt` recebe a data de hoje,
   em vez de ser recusado, igual ao que `syncProgress` já faz.
+- `completedAt` só existe em livro concluído. Se o status final não é
+  `completed`, a data é zerada, sem erro. Sem isso, um livro editado de
+  concluído para outro status guardaria a data antiga, e `syncProgress`
+  (`book.completedAt ?? hoje`) a reaproveitaria ao concluir de novo, podendo
+  mover o livro para outro ano na meta.
 
 *Por que isso não contradiz o ADR 001:* o ADR 001 protege dado **impreciso**
 (o usuário erra a página, a data, a nota, e só ele sofre). Estas regras tratam
@@ -140,12 +151,10 @@ anual, e ainda aparece no topo de `findLastCompleted` (no Postgres, `NULL`
 vem primeiro em ordem decrescente). Por isso a correção é um default, não uma
 recusa.
 
-*Deliberadamente permitido:* `rating` em livro planejado, datas no futuro e
-`completedAt` preenchido em livro que não está concluído. Os dois primeiros
-só afetam o próprio usuário. O terceiro é inofensivo para as estatísticas,
-que filtram por status. Logo, a invariante é garantida nos dois sentidos pela
-sincronização de sessões, mas nos caminhos manuais só vale `completed ⇒
-completedAt`.
+*Deliberadamente permitido:* `rating` em livro planejado e datas no futuro,
+que só afetam o próprio usuário. Com isso, a invariante
+`status === 'completed' ⟺ completedAt != null` vale nos dois sentidos em
+todos os caminhos.
 
 ---
 

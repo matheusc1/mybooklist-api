@@ -257,6 +257,99 @@ describe('DrizzleBooksRepository', () => {
     })
   })
 
+  it('changes a completed book with zero progress to planned and preserves startedAt', async () => {
+    const completedBook = {
+      ...mockBook,
+      status: 'completed' as const,
+      completedAt: '2024-02-01',
+    }
+    const tx = {
+      query: {
+        books: { findFirst: jest.fn().mockResolvedValue(completedBook) },
+      },
+      update: jest.fn(),
+    }
+    const updateQuery = {
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      returning: jest
+        .fn()
+        .mockResolvedValue([
+          { ...completedBook, status: 'planned', currentPage: 0 },
+        ]),
+    }
+    tx.update.mockReturnValue(updateQuery)
+
+    await repository.syncProgress(tx as unknown as Transaction, 'book-123', 0)
+
+    expect(updateQuery.set).toHaveBeenCalledWith({
+      currentPage: 0,
+      status: 'planned',
+      startedAt: '2024-01-02',
+      completedAt: null,
+    })
+  })
+
+  it.each(['planned', 'paused', 'dropped'] as const)(
+    'keeps %s status with zero progress',
+    async (status) => {
+      const book = { ...mockBook, status }
+      const tx = {
+        query: { books: { findFirst: jest.fn().mockResolvedValue(book) } },
+        update: jest.fn(),
+      }
+      const updateQuery = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ ...book, currentPage: 0 }]),
+      }
+      tx.update.mockReturnValue(updateQuery)
+
+      await repository.syncProgress(tx as unknown as Transaction, 'book-123', 0)
+
+      expect(updateQuery.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentPage: 0,
+          status,
+          completedAt: null,
+        }),
+      )
+    },
+  )
+
+  it('changes a completed book with partial progress to reading', async () => {
+    const completedBook = {
+      ...mockBook,
+      status: 'completed' as const,
+      completedAt: '2024-02-01',
+    }
+    const tx = {
+      query: {
+        books: { findFirst: jest.fn().mockResolvedValue(completedBook) },
+      },
+      update: jest.fn(),
+    }
+    const updateQuery = {
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      returning: jest
+        .fn()
+        .mockResolvedValue([
+          { ...completedBook, status: 'reading', currentPage: 100 },
+        ]),
+    }
+    tx.update.mockReturnValue(updateQuery)
+
+    await repository.syncProgress(tx as unknown as Transaction, 'book-123', 100)
+
+    expect(updateQuery.set).toHaveBeenCalledWith({
+      currentPage: 100,
+      status: 'reading',
+      startedAt: '2024-01-02',
+      completedAt: null,
+    })
+  })
+
   it('throws NotFoundException when syncing a missing book', async () => {
     const tx = {
       query: { books: { findFirst: jest.fn().mockResolvedValue(undefined) } },

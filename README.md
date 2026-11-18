@@ -78,9 +78,9 @@ Algumas decisões concretas construídas sobre esse princípio:
   progresso de páginas quando uma reading session é criada, editada ou
   apagada, com a sessão tendo autoridade para sobrescrever até status
   definidos manualmente (`dropped`, `paused`). Na criação e na edição manual
-  do livro nada é derivado: só há duas regras de coerência (`completedAt` não
-  pode ser anterior a `startedAt`, e um livro concluído sem data recebe a de
-  hoje).
+  do livro nada é derivado: só há três regras de coerência (`completedAt` não
+  pode ser anterior a `startedAt`, um livro concluído sem data recebe a de
+  hoje, e `completedAt` só existe em livro concluído).
 - **Sessões de leitura podem se sobrepor livremente**, sem validação nem
   aviso. Essa é uma decisão deliberada, não uma lacuna.
 - **Apagar a última sessão de um livro** não reseta o progresso

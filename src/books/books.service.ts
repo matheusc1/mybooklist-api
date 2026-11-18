@@ -34,11 +34,12 @@ export class BooksService {
 
   async create(book: NewBook) {
     this.assertPageWithinTotal(book.currentPage ?? 0, book.totalPages)
-    this.assertDatesInOrder(book.startedAt, book.completedAt)
-    const data =
-      book.status === 'completed' && !book.completedAt
-        ? { ...book, completedAt: formatDate(new Date()) }
-        : book
+    const data = this.withCoherentCompletedAt(
+      book,
+      book.status,
+      book.startedAt,
+      book.completedAt,
+    )
     return this.repository.create(data)
   }
 
@@ -53,17 +54,12 @@ export class BooksService {
       book.currentPage ?? existing.currentPage ?? 0,
       book.totalPages ?? existing.totalPages,
     )
-    const completedAt =
-      book.completedAt !== undefined ? book.completedAt : existing.completedAt
-    this.assertDatesInOrder(
+    const data = this.withCoherentCompletedAt(
+      book,
+      book.status ?? existing.status,
       book.startedAt !== undefined ? book.startedAt : existing.startedAt,
-      completedAt,
+      book.completedAt !== undefined ? book.completedAt : existing.completedAt,
     )
-    const status = book.status ?? existing.status
-    const data =
-      status === 'completed' && !completedAt
-        ? { ...book, completedAt: formatDate(new Date()) }
-        : book
     return this.repository.update(id, data)
   }
 
@@ -92,9 +88,28 @@ export class BooksService {
     return this.repository.findCompletedByYear(userId, year)
   }
 
-  private assertNoNullRequiredFields(
-    book: Partial<Omit<NewBook, 'userId' | 'id'>>,
-  ) {
+  // completedAt only exists on a completed book (ADR 003). Receives the payload
+  // and the final status and dates (the stored values merged with the payload).
+  // A completed book without a date gets today's, and a book that is not
+  // completed has the date cleared. Otherwise the payload is returned as is.
+  private withCoherentCompletedAt<T extends { completedAt?: string | null }>(
+    payload: T,
+    status: NewBook['status'],
+    startedAt: string | null | undefined,
+    completedAt: string | null | undefined,
+  ): T {
+    if (status === 'completed') {
+      if (completedAt) {
+        this.assertDatesInOrder(startedAt, completedAt)
+        return payload
+      }
+      return { ...payload, completedAt: formatDate(new Date()) }
+    }
+
+    return completedAt != null ? { ...payload, completedAt: null } : payload
+  }
+
+  private assertNoNullRequiredFields(book: Partial<NewBook>) {
     for (const field of NON_NULLABLE_FIELDS) {
       if (book[field] === null) {
         throw new BadRequestException(`${field} cannot be null.`)
