@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   check,
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -48,5 +49,6 @@ export const books = pgTable(
       'books_current_page_within_total',
       sql`${table.currentPage} <= ${table.totalPages}`,
     ),
+    index('books_user_id_idx').on(table.userId),
   ],
 )
