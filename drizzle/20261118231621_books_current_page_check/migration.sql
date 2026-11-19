@@ -1,0 +1,1 @@
+ALTER TABLE "books" ADD CONSTRAINT "books_current_page_within_total" CHECK ("current_page" <= "total_pages");

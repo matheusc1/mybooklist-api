@@ -1,4 +1,6 @@
+import { sql } from 'drizzle-orm'
 import {
+  check,
   date,
   integer,
   pgEnum,
@@ -17,25 +19,34 @@ export const statusEnum = pgEnum('status', [
   'dropped',
 ])
 
-export const books = pgTable('books', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  author: text('author').notNull(),
-  genre: text('genre').notNull(),
-  notes: text('notes'),
-  coverUrl: text('cover_url'),
-  totalPages: integer('total_pages').notNull(),
-  currentPage: integer('current_page').notNull().default(0),
-  status: statusEnum().notNull(),
-  rating: integer('rating'),
-  startedAt: date('started_at'),
-  completedAt: date('completed_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-})
+export const books = pgTable(
+  'books',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    author: text('author').notNull(),
+    genre: text('genre').notNull(),
+    notes: text('notes'),
+    coverUrl: text('cover_url'),
+    totalPages: integer('total_pages').notNull(),
+    currentPage: integer('current_page').notNull().default(0),
+    status: statusEnum().notNull(),
+    rating: integer('rating'),
+    startedAt: date('started_at'),
+    completedAt: date('completed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    check(
+      'books_current_page_within_total',
+      sql`${table.currentPage} <= ${table.totalPages}`,
+    ),
+  ],
+)

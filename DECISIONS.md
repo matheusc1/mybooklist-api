@@ -266,7 +266,11 @@ enviar (`Partial<Omit<NewBook, 'userId' | 'id'>>` em livros e
 do pipe. As opções do pipe são exportadas (`validationPipeOptions`) e
 testadas com o `ValidationPipe` real, e o E2E sobe o app com o mesmo
 `configureApp` do servidor, para a configuração de produção e a de teste não
-divergirem.
+divergirem. No banco, a última camada é a constraint
+`books_current_page_within_total` (`current_page <= total_pages`): dois PATCH
+concorrentes podem passar pela validação do service contra a mesma linha
+antiga, e a constraint impede que o par inválido seja gravado. Quem perder a
+corrida recebe um erro do banco, o que é preferível a dado incoerente.
 
 ---
 
