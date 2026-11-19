@@ -90,6 +90,15 @@ describe('deriveProgress', () => {
     })
   })
 
+  it('limits the progress to the total pages when the total was lowered', () => {
+    expect(deriveProgress(book({ totalPages: 100 }), 200, TODAY)).toMatchObject(
+      {
+        currentPage: 100,
+        status: 'completed',
+      },
+    )
+  })
+
   it.each(['planned', 'paused', 'dropped'] as const)(
     'keeps a %s book as it is at zero progress',
     (status) => {

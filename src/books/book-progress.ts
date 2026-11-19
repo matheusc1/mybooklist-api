@@ -31,5 +31,10 @@ export function deriveProgress(
       : book.startedAt
   const completedAt = completed ? (book.completedAt ?? today) : null
 
-  return { currentPage, status, startedAt, completedAt }
+  return {
+    currentPage: Math.min(currentPage, book.totalPages),
+    status,
+    startedAt,
+    completedAt,
+  }
 }

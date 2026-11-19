@@ -114,6 +114,8 @@ Regras:
   o livro pular direto de `planned` para `completed` numa única sessão.
 - `syncProgress` mantém a invariante `status === 'completed' ⟺ completedAt
   != null`.
+- Se o total de páginas do livro foi reduzido abaixo da `toPage` da sessão
+  vencedora, `currentPage` é limitado ao total e o livro fica `completed`.
 
 **Bug encontrado e corrigido durante os testes:** uma versão anterior só
 cobria a transição vinda de `planned`
