@@ -1,5 +1,7 @@
 # MyBookList API
 
+[![CI](https://github.com/matheusc1/mybooklist-api/actions/workflows/ci.yml/badge.svg)](https://github.com/matheusc1/mybooklist-api/actions/workflows/ci.yml)
+
 API do MyBookList, uma aplicação de tracking de leitura pessoal.
 
 ## Sobre o projeto
@@ -28,6 +30,8 @@ gasto), define metas anuais e acompanha estatísticas de atividade.
   do Nest não é confiável com SWC)
 - **Testes:** Jest para testes unitários (todos os módulos) e testes E2E
   com Supertest contra um banco de dados de teste isolado
+- **CI:** GitHub Actions (lint, typecheck, testes unitários, build e
+  auditoria das dependências de produção)
 
 ## Arquitetura
 
@@ -141,6 +145,12 @@ O `TEST_DATABASE_URL` precisa apontar para um banco **diferente** do
 iguais. As rotas auxiliares do E2E (`/test/*`) só são montadas com
 `NODE_ENV=test` e `E2E_TEST_MODE=true`, definidos pelo próprio código dos
 testes. Para subir uma API de teste à mão, use `npm run start:e2e`.
+
+O CI (GitHub Actions) roda lint, typecheck, testes unitários e build a cada
+push e pull request, além de uma auditoria das dependências de produção. O E2E
+roda só localmente, porque precisa de um banco. Para conferir o mesmo que o CI
+antes de um push, rode `npm run lint`, `npm run typecheck`, `npm test` e
+`npm run build`.
 
 ## Como rodar
 
