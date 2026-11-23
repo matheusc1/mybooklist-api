@@ -306,13 +306,16 @@ describe('Cross-module reading flow (e2e)', () => {
     })
   })
 
-  it('validates activity month format', async () => {
-    await request(app.getHttpServer())
-      .get('/activity')
-      .query({ month: '2026-1' })
-      .set('Cookie', cookie)
-      .expect(400)
-  })
+  it.each(['2026-1', '2026-13', '2026-00'])(
+    'rejects %s as an activity month',
+    async (month) => {
+      await request(app.getHttpServer())
+        .get('/activity')
+        .query({ month })
+        .set('Cookie', cookie)
+        .expect(400)
+    },
+  )
 
   it.each(['abc', '999', '10000'])(
     'rejects %s as a yearly overview year',

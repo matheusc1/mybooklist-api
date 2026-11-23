@@ -53,6 +53,37 @@ describe('Authentication and protected routes (e2e)', () => {
     expect(response.body).not.toHaveProperty('providerId')
   })
 
+  it('rejects a token without a subject', async () => {
+    const token = app.get(JwtService).sign({})
+
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', `access_token=${token}`)
+      .expect(401)
+  })
+
+  it('rejects an expired token', async () => {
+    const token = app
+      .get(JwtService)
+      .sign({ sub: user.id }, { expiresIn: '-1s' })
+
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', `access_token=${token}`)
+      .expect(401)
+  })
+
+  it('rejects a token whose user no longer exists', async () => {
+    const ghost = await seedUser(app, 'auth-ghost')
+    const token = app.get(JwtService).sign({ sub: ghost.id })
+    await deleteUser(database, ghost.id)
+
+    await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', `access_token=${token}`)
+      .expect(401)
+  })
+
   it('allows public logout and clears the access-token cookie', async () => {
     const response = await request(app.getHttpServer())
       .post('/auth/logout')

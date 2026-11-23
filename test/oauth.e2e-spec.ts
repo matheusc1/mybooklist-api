@@ -118,6 +118,55 @@ describe.each([
     ).resolves.toMatchObject({ provider, providerId })
   })
 
+  it('refreshes the profile on a repeated login and keeps the reading speed', async () => {
+    const users = app.get(UsersService)
+    const agent = request.agent(app.getHttpServer())
+    stubProvider()
+    let state = await startLogin(agent)
+    await agent
+      .get(`/auth/${provider}/callback`)
+      .query({ code: 'code', state })
+      .expect(302)
+
+    const created = await users.findByProvider(provider, providerId)
+    await users.update(created?.id as string, { readingSpeed: 77 })
+
+    stubProvider({ ...providerProfile, displayName: 'Renamed User' })
+    state = await startLogin(agent)
+    await agent
+      .get(`/auth/${provider}/callback`)
+      .query({ code: 'code', state })
+      .expect(302)
+
+    await expect(
+      users.findByProvider(provider, providerId),
+    ).resolves.toMatchObject({
+      name: 'Renamed User',
+      readingSpeed: 77,
+    })
+  })
+
+  // Only GitHub: the display name is optional there, and users.name is NOT NULL.
+  const itGithub = provider === 'github' ? it : it.skip
+
+  itGithub(
+    'falls back to the username when the GitHub profile has no display name',
+    async () => {
+      stubProvider({ ...providerProfile, displayName: '', username: 'octocat' })
+      const agent = request.agent(app.getHttpServer())
+      const state = await startLogin(agent)
+
+      await agent
+        .get(`/auth/${provider}/callback`)
+        .query({ code: 'code', state })
+        .expect(302)
+
+      await expect(
+        app.get(UsersService).findByProvider(provider, providerId),
+      ).resolves.toMatchObject({ name: 'octocat' })
+    },
+  )
+
   it('rejects a callback that has no state cookie', async () => {
     stubProvider()
 
