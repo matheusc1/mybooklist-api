@@ -203,3 +203,7 @@ Ver [TODO.md](./TODO.md) para o detalhamento de features planejadas e
 
 - **Frontend:** React, TypeScript, TanStack Router/Query/Form, Radix UI,
   Base UI, Tailwind CSS v4, Zustand, Zod - [MyBookList](https://github.com/matheusc1/mybooklist)
+
+## Licença
+
+Veja o arquivo [LICENSE](./LICENSE).

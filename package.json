@@ -4,7 +4,7 @@
   "description": "API do MyBookList, um app de tracking de leitura pessoal",
   "author": "Matheus Cardoso (https://github.com/matheusc1)",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": "24.x"
   },
